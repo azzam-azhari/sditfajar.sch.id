@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 import { ROLE_DASHBOARD_PATH, UserRole } from '@/constants/auth';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { supabaseResponse, user, supabase } = await updateSession(request);
   const pathname = request.nextUrl.pathname;
 
@@ -44,7 +44,7 @@ export async function middleware(request: NextRequest) {
       mustChangePassword = profile.must_change_password;
     } else {
       if (profileError) {
-        console.error('[Middleware] Gagal mengambil profil user:', {
+        console.error('[Proxy] Gagal mengambil profil user:', {
           userId: user.id,
           code: profileError.code,
           message: profileError.message,
