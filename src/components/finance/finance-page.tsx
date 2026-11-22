@@ -7,7 +7,8 @@ import { FinanceConsole, type FinanceInvoice } from './finance-console';
 export async function FinanceConsoleSection({ canManageInvoices }: { canManageInvoices: boolean }) {
   const supabase = await createClient();
   const [invoices, { data: classrooms }, { data: students }] = await Promise.all([
-    getInvoices(),
+    // Admin: error database ditampilkan lewat error boundary route (tombol coba lagi).
+    getInvoices(undefined, { throwOnError: canManageInvoices }),
     supabase
       .from('classrooms')
       .select('id, name, academic_years!inner(is_active)')

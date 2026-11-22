@@ -21,6 +21,12 @@ export interface DatePickerProps {
   required?: boolean;
   startYear?: number;
   endYear?: number;
+  /** Batas bawah/atas yang bisa dipilih (YYYY-MM-DD). */
+  min?: string;
+  max?: string;
+  /** Bulan yang ditampilkan saat belum ada nilai (YYYY-MM-DD). Default: hari ini. */
+  defaultMonth?: string;
+  name?: string;
 }
 
 function parseYMD(dateStr?: string): Date | undefined {
@@ -58,8 +64,12 @@ export function DatePicker({
   className,
   id,
   required,
-  startYear = 2012,
-  endYear = new Date().getFullYear(),
+  startYear = new Date().getFullYear() - 15,
+  endYear = new Date().getFullYear() + 5,
+  min,
+  max,
+  defaultMonth,
+  name,
 }: DatePickerProps) {
   const generatedId = React.useId();
   const inputId = id ?? generatedId;
@@ -68,12 +78,20 @@ export function DatePicker({
   const selectedDate = React.useMemo(() => parseYMD(value), [value]);
   const displayDate = React.useMemo(() => formatDisplayDate(value), [value]);
 
-  // Default month for elementary school applicants (~7 years ago) or start of range
+  const minDate = React.useMemo(() => parseYMD(min), [min]);
+  const maxDate = React.useMemo(() => parseYMD(max), [max]);
   const defaultMonthDate = React.useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const targetYear = Math.max(startYear, Math.min(endYear, currentYear - 7));
-    return new Date(targetYear, 6, 1);
-  }, [startYear, endYear]);
+    const explicit = parseYMD(defaultMonth);
+    if (explicit) return explicit;
+    const today = new Date();
+    if (maxDate && today > maxDate) return maxDate;
+    if (minDate && today < minDate) return minDate;
+    return today;
+  }, [defaultMonth, minDate, maxDate]);
+  const disabledDays = [
+    ...(minDate ? [{ before: minDate }] : []),
+    ...(maxDate ? [{ after: maxDate }] : []),
+  ];
 
   return (
     <div className="w-full space-y-1.5">
@@ -105,7 +123,7 @@ export function DatePicker({
             <div className="flex items-center gap-2 truncate">
               <CalendarIcon className="size-3.5 text-muted-foreground shrink-0" />
               <span className="truncate">
-                {displayDate ?? placeholder ?? "Pilih tanggal lahir"}
+                {displayDate ?? placeholder ?? "Pilih tanggal"}
               </span>
             </div>
             <div className="flex items-center gap-1 shrink-0">
@@ -152,10 +170,22 @@ export function DatePicker({
             startMonth={new Date(startYear, 0)}
             endMonth={new Date(endYear, 11)}
             defaultMonth={selectedDate ?? defaultMonthDate}
+            disabled={disabledDays}
             className="rounded-lg"
           />
         </PopoverContent>
       </Popover>
+      {required && (
+        <input
+          tabIndex={-1}
+          aria-hidden
+          name={name}
+          required
+          value={value ?? ""}
+          onChange={() => {}}
+          className="sr-only"
+        />
+      )}
 
       {error && <p className="text-[11px] text-destructive font-medium">{error}</p>}
       {!error && helperText && (

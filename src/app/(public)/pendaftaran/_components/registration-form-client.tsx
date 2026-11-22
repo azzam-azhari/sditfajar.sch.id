@@ -534,6 +534,8 @@ export function RegistrationFormClient({ waves }: RegistrationFormClientProps) {
                     required
                     startYear={2012}
                     endYear={new Date().getFullYear()}
+                    defaultMonth={`${new Date().getFullYear() - 7}-07-01`}
+                    placeholder="Pilih tanggal lahir"
                   />
                 </div>
               </div>

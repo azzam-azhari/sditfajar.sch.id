@@ -93,15 +93,23 @@ export interface InvoiceRow {
 export const INVOICE_SELECT =
   'id, invoice_number, type, title, amount, due_date, billing_month, billing_year, status, notes, created_at, student_id, marketplace_order_id, students(nis, profiles(name), class_students(status, left_at, classrooms(id, name))), payment_proofs(id, status, amount, transfer_date, sender_name, sender_bank, notes, review_notes, created_at)';
 
-/** Tagihan yang terlihat oleh pengguna (RLS: staf keuangan semua, wali anaknya, murid dirinya). */
-export async function getInvoices(filter?: { studentIds?: string[] }): Promise<InvoiceRow[]> {
+/**
+ * Tagihan yang terlihat oleh pengguna (RLS: staf keuangan semua, wali anaknya, murid dirinya).
+ * `throwOnError`: lempar error database (ditangkap error boundary route) alih-alih
+ * mengembalikan daftar kosong, agar kegagalan tidak terbaca sebagai "belum ada tagihan".
+ */
+export async function getInvoices(
+  filter?: { studentIds?: string[] },
+  options?: { throwOnError?: boolean }
+): Promise<InvoiceRow[]> {
   const supabase = await createClient();
   let query = supabase.from('payment_invoices').select(INVOICE_SELECT).order('created_at', { ascending: false });
   if (filter?.studentIds) {
     if (filter.studentIds.length === 0) return [];
     query = query.in('student_id', filter.studentIds);
   }
-  const { data } = await query;
+  const { data, error } = await query;
+  if (error && options?.throwOnError) throw new Error(`Gagal memuat tagihan: ${error.message}`);
   return ((data ?? []) as unknown as InvoiceRow[]).map((i) => ({
     ...i,
     amount: Number(i.amount),

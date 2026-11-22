@@ -25,6 +25,7 @@ import {
 } from '@/actions/lms.actions';
 import type { TeachingAssignmentRef } from '@/lib/data/lms';
 import { formatDateTime } from '@/lib/date';
+import { DatePicker } from "@/components/common/date-picker";
 
 export interface AssignmentItem {
   id: string;
@@ -364,7 +365,25 @@ export function TugasClient({
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="t-due" className="text-xs">Batas waktu (WIB)</Label>
-                <Input id="t-due" type="datetime-local" value={form.dueLocal} onChange={(e) => update('dueLocal', e.target.value)} required />
+                <div className="flex gap-2">
+                  <div className="min-w-0 flex-1">
+                    <DatePicker
+                      id="t-due"
+                      value={form.dueLocal.slice(0, 10)}
+                      onChange={(d) => update('dueLocal', d ? `${d}T${form.dueLocal.slice(11, 16) || '23:59'}` : '')}
+                      required
+                    />
+                  </div>
+                  <Input
+                    type="time"
+                    aria-label="Jam batas waktu"
+                    className="h-9 w-28"
+                    value={form.dueLocal.slice(11, 16)}
+                    onChange={(e) => update('dueLocal', `${form.dueLocal.slice(0, 10)}T${e.target.value}`)}
+                    disabled={!form.dueLocal}
+                    required
+                  />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="t-max" className="text-xs">Skor maksimal</Label>

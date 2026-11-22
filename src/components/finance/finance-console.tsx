@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Banknote, Check, FileText, Pencil, Plus, Receipt, X, XCircle } from 'lucide-react';
 import { ZebraDataTable } from '@/components/common/zebra-data-table';
@@ -23,6 +23,8 @@ import {
 import { INVOICE_LABEL, INVOICE_VARIANT, rupiah } from '@/components/lms/marketplace-labels';
 import { INVOICE_TYPES, INVOICE_TYPE_LABELS } from '@/validations/payment.schema';
 import { formatDate, formatDateTime } from '@/lib/date';
+import { InvoiceRecap } from './invoice-recap';
+import { DatePicker } from "@/components/common/date-picker";
 
 export interface FinanceInvoice {
   id: string;
@@ -68,6 +70,9 @@ export function FinanceConsole({
   defaultYear: number;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Link rekap berfilter (?status=, ?bulan=, …) langsung membuka tab Tagihan.
+  const hasRecapParams = ['q', 'status', 'jenis', 'kelas', 'bulan', 'dari', 'sampai', 'hal'].some((k) => searchParams.has(k));
   const [isPending, startTransition] = React.useTransition();
   const run: Run = (fn, after) =>
     startTransition(async () => {
@@ -89,6 +94,8 @@ export function FinanceConsole({
   const [cashNote, setCashNote] = React.useState('');
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<FinanceInvoice | null>(null);
+  const [detail, setDetail] = React.useState<FinanceInvoice | null>(null);
+  const [cancelling, setCancelling] = React.useState<FinanceInvoice | null>(null);
 
   const pendingProofs = invoices.filter((i) => i.status === 'pending' && i.proofs.some((p) => p.status === 'pending'));
   const filtered = invoices.filter((i) => {
@@ -123,7 +130,7 @@ export function FinanceConsole({
   };
 
   return (
-    <Tabs defaultValue={pendingProofs.length ? 'verifikasi' : 'tagihan'} className="space-y-4">
+    <Tabs defaultValue={pendingProofs.length && !hasRecapParams ? 'verifikasi' : 'tagihan'} className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <TabsList>
           <TabsTrigger value="verifikasi" className="text-xs">Verifikasi Bukti ({pendingProofs.length})</TabsTrigger>
@@ -191,6 +198,20 @@ export function FinanceConsole({
       </TabsContent>
 
       <TabsContent value="tagihan" className="space-y-3">
+        {canManageInvoices ? (
+          <InvoiceRecap
+            invoices={invoices}
+            classrooms={classrooms}
+            canManage={canManageInvoices}
+            actions={{
+              onDetail: setDetail,
+              onCash: (i) => { setCashFor(i); setCashNote(''); },
+              onEdit: setEditing,
+              onCancel: setCancelling,
+            }}
+          />
+        ) : (
+        <>
         <div className="grid gap-2 sm:grid-cols-4">
           <Input placeholder="Cari nama, NIS, nomor tagihan…" aria-label="Cari tagihan" className="h-9 text-xs" value={search} onChange={(e) => setSearch(e.target.value)} />
           <Select value={status} onValueChange={setStatus}>
@@ -277,7 +298,88 @@ export function FinanceConsole({
             },
           ]}
         />
+        </>
+        )}
       </TabsContent>
+
+      {/* Detail tagihan (admin) */}
+      <Dialog open={!!detail} onOpenChange={(v) => !v && setDetail(null)}>
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm">{detail?.title}</DialogTitle>
+            <DialogDescription className="font-mono text-xs">{detail?.invoice_number} · {detail && (INVOICE_TYPE_LABELS[detail.type] ?? detail.type)}</DialogDescription>
+          </DialogHeader>
+          {detail && (
+            <div className="space-y-4 text-xs">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div><dt className="text-muted-foreground">Murid</dt><dd className="text-foreground">{detail.studentName}</dd></div>
+                <div><dt className="text-muted-foreground">NIS · Kelas</dt><dd className="font-mono">{detail.nis} · {detail.classroom?.name ?? '-'}</dd></div>
+                <div><dt className="text-muted-foreground">Nominal</dt><dd className="font-mono font-semibold">{rupiah(detail.amount)}</dd></div>
+                <div><dt className="text-muted-foreground">Jatuh tempo</dt><dd className="font-mono">{formatDate(detail.due_date)}</dd></div>
+                <div><dt className="text-muted-foreground">Status</dt><dd>{statusBadge(detail)}</dd></div>
+                <div><dt className="text-muted-foreground">Dibuat</dt><dd className="font-mono">{formatDateTime(detail.created_at)}</dd></div>
+              </dl>
+              <div className="space-y-2">
+                <div className="font-semibold text-foreground">Riwayat bukti transfer</div>
+                {detail.proofs.length === 0 ? (
+                  <p className="text-muted-foreground">Belum ada bukti transfer.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {detail.proofs.map((p) => (
+                      <li key={p.id} className="rounded-lg border border-border/80 p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span>{p.sender_name} · {p.sender_bank} · <span className="font-mono">{rupiah(p.amount)}</span></span>
+                          <StatusBadge
+                            status={p.status === 'approved' ? 'Disetujui' : p.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
+                            variant={p.status === 'approved' ? 'success' : p.status === 'rejected' ? 'danger' : 'info'}
+                            size="sm"
+                          />
+                        </div>
+                        <div className="mt-1 text-muted-foreground">Transfer {formatDate(p.transfer_date)} · dikirim {formatDateTime(p.created_at)}</div>
+                        {p.review_notes && <div className="mt-1 text-muted-foreground">Catatan: {p.review_notes}</div>}
+                        <Button size="sm" variant="outline" className="mt-2 h-7 text-xs" onClick={() => openProof(p.id)} disabled={isPending}>
+                          <FileText className="size-3.5" /> Lihat bukti
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            {detail?.status === 'paid' && (
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/dashboard/kuitansi/${detail.id}`} target="_blank" rel="noopener noreferrer"><Receipt className="size-3.5" /> Kuitansi</Link>
+              </Button>
+            )}
+            <Button size="sm" onClick={() => setDetail(null)}>Tutup</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Konfirmasi batalkan tagihan */}
+      <Dialog open={!!cancelling} onOpenChange={(v) => !v && setCancelling(null)}>
+        <DialogContent className="sm:max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm">Batalkan tagihan?</DialogTitle>
+            <DialogDescription className="text-xs">
+              {cancelling?.title} · {cancelling?.studentName} · {cancelling && rupiah(cancelling.amount)}. Tagihan yang dibatalkan tidak dapat dibayar lagi dan tidak dihitung dalam rekap.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setCancelling(null)}>Kembali</Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={isPending}
+              onClick={() => cancelling && run(() => cancelInvoiceAction(cancelling.id), () => setCancelling(null))}
+            >
+              Ya, batalkan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Setujui / tolak bukti */}
       <Dialog open={!!reviewing} onOpenChange={(v) => !v && setReviewing(null)}>
@@ -479,7 +581,7 @@ function CreateInvoiceDialog({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="inv-due" className="text-xs">Jatuh tempo</Label>
-              <Input id="inv-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} required />
+              <DatePicker id="inv-due" value={due} onChange={setDue} required />
             </div>
           </div>
           <DialogFooter>
@@ -529,7 +631,7 @@ function EditInvoiceDialog({ invoice, onClose, run, isPending }: { invoice: Fina
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="ed-due" className="text-xs">Jatuh tempo</Label>
-              <Input id="ed-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} required />
+              <DatePicker id="ed-due" value={due} onChange={setDue} required />
             </div>
           </div>
           <DialogFooter>

@@ -20,6 +20,7 @@ import {
 } from '@/actions/tahfidz.actions';
 import { PREDICATE_LABELS, SURAHS, TAHFIDZ_PREDICATES, getSurah, type TahfidzPredicate } from '@/constants/quran';
 import { formatDate } from '@/lib/date';
+import { DatePicker } from "@/components/common/date-picker";
 
 export interface StudentOption {
   id: string;
@@ -286,7 +287,7 @@ export function TahfidzClient({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tf-date" className="text-xs">Tanggal setoran</Label>
-                <Input id="tf-date" type="date" max={today} value={form.date} onChange={(e) => update('date', e.target.value)} required />
+                <DatePicker id="tf-date" max={today} value={form.date} onChange={(v) => update('date', v)} required />
               </div>
             </div>
             <div className="space-y-1.5">

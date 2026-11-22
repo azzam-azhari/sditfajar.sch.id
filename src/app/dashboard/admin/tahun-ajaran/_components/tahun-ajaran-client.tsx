@@ -29,6 +29,7 @@ import {
   createSemesterAction,
   updateSchoolPeriodSettingsAction,
 } from '@/actions/academic.actions';
+import { DatePicker } from "@/components/common/date-picker";
 import { CalendarDays, Plus, CheckCircle2, Clock } from 'lucide-react';
 
 interface AcademicYearItem {
@@ -386,23 +387,22 @@ export function TahunAjaranClient({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs">Tanggal Mulai</Label>
-                <Input
+                <DatePicker
                   required
-                  type="date"
                   value={yearStartDate}
-                  onChange={(e) => setYearStartDate(e.target.value)}
-                  className="text-xs h-8 font-mono"
+                  onChange={setYearStartDate}
+                  className="h-8"
                 />
               </div>
 
               <div className="space-y-1">
                 <Label className="text-xs">Tanggal Selesai</Label>
-                <Input
+                <DatePicker
                   required
-                  type="date"
                   value={yearEndDate}
-                  onChange={(e) => setYearEndDate(e.target.value)}
-                  className="text-xs h-8 font-mono"
+                  onChange={setYearEndDate}
+                  min={yearStartDate || undefined}
+                  className="h-8"
                 />
               </div>
             </div>
@@ -471,23 +471,22 @@ export function TahunAjaranClient({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs">Tanggal Mulai</Label>
-                <Input
+                <DatePicker
                   required
-                  type="date"
                   value={semStartDate}
-                  onChange={(e) => setSemStartDate(e.target.value)}
-                  className="text-xs h-8 font-mono"
+                  onChange={setSemStartDate}
+                  className="h-8"
                 />
               </div>
 
               <div className="space-y-1">
                 <Label className="text-xs">Tanggal Selesai</Label>
-                <Input
+                <DatePicker
                   required
-                  type="date"
                   value={semEndDate}
-                  onChange={(e) => setSemEndDate(e.target.value)}
-                  className="text-xs h-8 font-mono"
+                  onChange={setSemEndDate}
+                  min={semStartDate || undefined}
+                  className="h-8"
                 />
               </div>
             </div>

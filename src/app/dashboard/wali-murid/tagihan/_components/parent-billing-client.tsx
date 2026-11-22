@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { submitPaymentProofAction } from '@/actions/payment.actions';
 import { INVOICE_LABEL, INVOICE_VARIANT, rupiah } from '@/components/lms/marketplace-labels';
 import { INVOICE_TYPE_LABELS, type BankAccount } from '@/validations/payment.schema';
+import { DatePicker } from "@/components/common/date-picker";
 import { formatDate, jakartaToday } from '@/lib/date';
 
 export interface ParentInvoice {
@@ -191,7 +192,7 @@ export function ParentBillingClient({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="pf-date" className="text-xs">Tanggal transfer</Label>
-                <Input id="pf-date" type="date" max={today} value={form.transfer_date} onChange={(e) => setForm((f) => ({ ...f, transfer_date: e.target.value }))} required />
+                <DatePicker id="pf-date" max={today} value={form.transfer_date} onChange={(v) => setForm((f) => ({ ...f, transfer_date: v }))} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="pf-bank" className="text-xs">Bank pengirim</Label>
