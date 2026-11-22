@@ -201,6 +201,10 @@ export function PpdbVerificationClient({
   const [customNis, setCustomNis] = React.useState('');
   const [adminNotes, setAdminNotes] = React.useState('');
   const [loadingDocId, setLoadingDocId] = React.useState<string | null>(null);
+  // Kata sandi awal akun murid & wali hasil promosi (ditampilkan sekali).
+  const [promotedCredentials, setPromotedCredentials] = React.useState<
+    { name: string; login: string; initialPassword: string }[] | null
+  >(null);
 
   // Hitung total halaman
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -254,6 +258,7 @@ export function PpdbVerificationClient({
       if (res.success) {
         toast.success(res.message);
         setSelectedApp(null);
+        setPromotedCredentials(res.data.credentials);
       } else {
         toast.error(res.error);
       }
@@ -892,6 +897,28 @@ export function PpdbVerificationClient({
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Kata sandi awal akun hasil promosi (ditampilkan sekali) */}
+      <Dialog open={!!promotedCredentials} onOpenChange={() => setPromotedCredentials(null)}>
+        <DialogContent className="w-[95vw] sm:max-w-lg rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm">Akun murid & wali berhasil dibuat</DialogTitle>
+            <DialogDescription className="text-xs">
+              Catat dan bagikan kata sandi awal berikut secara pribadi. Data ini tidak disimpan dan
+              tidak dapat ditampilkan lagi. Pengguna wajib mengganti kata sandi saat login pertama.
+            </DialogDescription>
+          </DialogHeader>
+          <ZebraDataTable
+            data={promotedCredentials ?? []}
+            keyExtractor={(c) => c.login}
+            columns={[
+              { header: 'Nama', accessorKey: 'name' },
+              { header: 'Login', accessorKey: 'login', isMono: true },
+              { header: 'Kata Sandi Awal', accessorKey: 'initialPassword', isMono: true },
+            ]}
+          />
         </DialogContent>
       </Dialog>
     </div>

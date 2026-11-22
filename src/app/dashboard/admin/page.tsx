@@ -86,7 +86,7 @@ export default async function AdminDashboardPage() {
       icon: 'school',
     },
     {
-      description: 'Verifikasi PPDB Baru',
+      description: 'Verifikasi SPMB Baru',
       title: `${pendingPpdb || 0} Calon`,
       badgeText: 'Perlu Tinjauan',
       footerTitle: 'Pendaftaran daring calon murid',
@@ -111,7 +111,7 @@ export default async function AdminDashboardPage() {
           <Button asChild size="sm" variant="default" className="text-xs">
             <Link href="/dashboard/admin/pendaftaran" className="flex items-center gap-1.5">
               <UserCheck className="size-3.5" />
-              <span>Verifikasi PPDB</span>
+              <span>Verifikasi SPMB</span>
             </Link>
           </Button>
         </div>

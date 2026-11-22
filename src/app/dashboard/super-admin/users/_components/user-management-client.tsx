@@ -64,7 +64,7 @@ export function UserManagementClient({
   const [stafEmail, setStafEmail] = React.useState('');
   const [stafPhone, setStafPhone] = React.useState('');
   const [stafRole, setStafRole] = React.useState<'admin' | 'guru'>('guru');
-  const [stafNip, setStafNip] = React.useState('');
+  const [stafNuptk, setStafNuptk] = React.useState('');
 
   // State Modal Hasil Reset Password
   const [resetResult, setResetResult] = React.useState<{ name: string; password: string } | null>(null);
@@ -127,7 +127,7 @@ export function UserManagementClient({
         email: stafEmail,
         phone: stafPhone || null,
         role: stafRole,
-        nip: stafNip || null,
+        nuptk: stafRole === 'guru' ? stafNuptk.trim() : null,
       });
 
       if (res.success) {
@@ -140,7 +140,7 @@ export function UserManagementClient({
         setStafName('');
         setStafEmail('');
         setStafPhone('');
-        setStafNip('');
+        setStafNuptk('');
       } else {
         toast.error(res.error);
       }
@@ -369,11 +369,17 @@ export function UserManagementClient({
 
             {stafRole === 'guru' && (
               <div className="space-y-1">
-                <Label className="text-xs">NIP / NUPTK (Opsional)</Label>
+                <Label htmlFor="staf-nuptk" className="text-xs">NUPTK (wajib, 16 digit)</Label>
                 <Input
-                  placeholder="1985xxxxxx"
-                  value={stafNip}
-                  onChange={(e) => setStafNip(e.target.value)}
+                  id="staf-nuptk"
+                  required
+                  inputMode="numeric"
+                  pattern="\d{16}"
+                  maxLength={16}
+                  title="NUPTK terdiri dari 16 digit angka"
+                  placeholder="16 digit angka"
+                  value={stafNuptk}
+                  onChange={(e) => setStafNuptk(e.target.value.replace(/\D/g, ''))}
                   className="text-xs h-8 font-mono"
                 />
               </div>

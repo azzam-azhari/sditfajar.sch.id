@@ -20,6 +20,7 @@ import {
   commitCsvBatchAction,
   CsvValidationError,
   ImportCsvRow,
+  ImportedCredential,
 } from '@/actions/import.actions';
 import {
   Download,
@@ -47,6 +48,20 @@ export function ImportCsvClient({ initialBatches }: { initialBatches: BatchHisto
   const [csvContent, setCsvContent] = React.useState('');
   const [filename, setFilename] = React.useState('');
   const [isPending, startTransition] = React.useTransition();
+  // Kata sandi awal hasil import: hanya tersedia sekali setelah komit berhasil.
+  const [credentials, setCredentials] = React.useState<ImportedCredential[] | null>(null);
+
+  const downloadCredentials = () => {
+    if (!credentials) return;
+    const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const csv = ['nama,login,kata_sandi_awal', ...credentials.map((c) => [c.name, c.login, c.initialPassword].map(escape).join(','))].join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `akun-import-${entityType}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Hasil Validasi
   const [validationResult, setValidationResult] = React.useState<{
@@ -112,7 +127,7 @@ export function ImportCsvClient({ initialBatches }: { initialBatches: BatchHisto
         setCsvContent('');
         setFilename('');
         setValidationResult(null);
-        window.location.reload();
+        setCredentials(res.data.credentials);
       } else {
         toast.error(res.error);
       }
@@ -331,6 +346,41 @@ export function ImportCsvClient({ initialBatches }: { initialBatches: BatchHisto
               />
             </div>
           )}
+        </div>
+      )}
+
+      {/* Kata sandi awal akun hasil import (ditampilkan sekali) */}
+      {credentials && credentials.length > 0 && (
+        <div className="space-y-3 rounded-xl border border-amber-500/40 bg-amber-500/5 p-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold tracking-tight text-foreground">
+                Kata sandi awal {credentials.length} akun baru
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Unduh dan bagikan secara pribadi. Data ini tidak disimpan dan hilang saat halaman dimuat ulang.
+                Pengguna wajib mengganti kata sandi saat login pertama.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={downloadCredentials}>
+                <Download className="size-3.5" />
+                Unduh CSV
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => window.location.reload()}>
+                Selesai
+              </Button>
+            </div>
+          </div>
+          <ZebraDataTable
+            data={credentials}
+            keyExtractor={(c) => c.login}
+            columns={[
+              { header: 'Nama', accessorKey: 'name' },
+              { header: 'Login', accessorKey: 'login', isMono: true },
+              { header: 'Kata Sandi Awal', accessorKey: 'initialPassword', isMono: true },
+            ]}
+          />
         </div>
       )}
 

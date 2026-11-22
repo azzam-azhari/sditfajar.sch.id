@@ -79,10 +79,16 @@ export default async function AdminPpdbVerificationPage(props: PageProps) {
 
   // Pencarian (search)
   if (searchParams.search && searchParams.search.trim()) {
-    const s = searchParams.search.trim();
-    query = query.or(
-      `student_name.ilike.%${s}%,registration_number.ilike.%${s}%,parent_name.ilike.%${s}%,parent_phone.ilike.%${s}%`
-    );
+    // Buang karakter sintaks filter PostgREST (koma, kurung, kutip) dan wildcard
+    // sebelum dirangkai ke .or(), lalu bungkus nilai dengan tanda kutip.
+    const s = searchParams.search.trim().replace(/[^\p{L}\p{N}\s@.+-]/gu, '');
+    if (s) {
+      query = query.or(
+        ['student_name', 'registration_number', 'parent_name', 'parent_phone']
+          .map((column) => `${column}.ilike."%${s}%"`)
+          .join(',')
+      );
+    }
   }
 
   query = query.order('created_at', { ascending: false }).range(from, to);
@@ -136,7 +142,7 @@ export default async function AdminPpdbVerificationPage(props: PageProps) {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-bold tracking-tight text-foreground">
-          Verifikasi Pendaftaran PPDB Online
+          Verifikasi Pendaftaran SPMB Online
         </h1>
         <p className="text-xs text-muted-foreground mt-0.5">
           Tinjau berkas pendaftaran calon murid baru, periksa kelengkapan administrasi, dan promosikan siswa terpilih ke basis data akademik aktif.

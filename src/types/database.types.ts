@@ -229,8 +229,7 @@ export interface Database {
         Row: {
           id: string;
           profile_id: string;
-          nip: string | null;
-          nuptk: string | null;
+          nuptk: string;
           bio: string | null;
           is_active: boolean;
           created_at: string;
@@ -239,8 +238,7 @@ export interface Database {
         Insert: {
           id?: string;
           profile_id: string;
-          nip?: string | null;
-          nuptk?: string | null;
+          nuptk: string;
           bio?: string | null;
           is_active?: boolean;
           created_at?: string;

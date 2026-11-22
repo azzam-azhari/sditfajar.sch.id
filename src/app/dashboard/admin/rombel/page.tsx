@@ -35,7 +35,7 @@ export default async function AdminRombelPage() {
         ),
         teachers (
           id,
-          nip,
+          nuptk,
           profiles (
             name
           )
@@ -49,7 +49,7 @@ export default async function AdminRombelPage() {
       .from('teachers')
       .select(`
         id,
-        nip,
+        nuptk,
         profiles (
           name
         )
@@ -72,7 +72,7 @@ export default async function AdminRombelPage() {
         initialClassrooms={(classrooms as unknown as ClassroomItem[]) || []}
         classes={classes || []}
         academicYears={academicYears || []}
-        teachers={(teachers as unknown as { id: string; nip: string | null; profiles?: { name: string } }[]) || []}
+        teachers={(teachers as unknown as { id: string; nuptk: string; profiles?: { name: string } }[]) || []}
       />
     </div>
   );

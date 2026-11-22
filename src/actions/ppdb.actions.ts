@@ -1,5 +1,8 @@
 'use server';
 
+import { normalizePhone } from '@/lib/phone';
+import { randomInt } from 'crypto';
+
 import 'server-only';
 
 import { createClient } from '@/lib/supabase/server';
@@ -9,6 +12,7 @@ import { requireRole } from '@/lib/supabase/auth-helpers';
 import { ActionResult } from '@/types/action.types';
 import { revalidatePath } from 'next/cache';
 import { createSignedUrl, createAdminSignedUrl } from '@/lib/supabase/storage';
+import { allowRequest, getClientIp, rateLimitedError } from '@/lib/rate-limit';
 import {
   publicRegistrationSchema,
   updateRegistrationStatusSchema,
@@ -120,7 +124,7 @@ export async function submitPublicRegistrationAction(
   if (typeof rawInput.hp_tambahan === 'string' && rawInput.hp_tambahan.trim().length > 0) {
     return {
       success: true,
-      data: { registrationNumber: 'PPDB-2026-0000' },
+      data: { registrationNumber: 'SPMB-2026-0000' },
       message: 'Formulir pendaftaran berhasil dikirim.',
     };
   }
@@ -131,10 +135,15 @@ export async function submitPublicRegistrationAction(
     if (elapsed < 2000) {
       return {
         success: true,
-        data: { registrationNumber: 'PPDB-2026-0000' },
+        data: { registrationNumber: 'SPMB-2026-0000' },
         message: 'Formulir pendaftaran berhasil dikirim.',
       };
     }
+  }
+
+  // 3b. Rate limit per IP (setelah honeypot agar bot tetap menerima sukses palsu)
+  if (!(await allowRequest('ppdbSubmit', await getClientIp()))) {
+    return rateLimitedError('Terlalu banyak pendaftaran dari jaringan ini. Silakan coba lagi dalam 1 jam atau hubungi panitia SPMB.');
   }
 
   // 4. Validasi Zod Skema
@@ -205,14 +214,14 @@ export async function submitPublicRegistrationAction(
     if (rpcErr || !dbNumber) {
       const yearStr = new Date().getFullYear().toString();
       const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-      registrationNumber = `PPDB-${yearStr}-${randomSuffix}`;
+      registrationNumber = `SPMB-${yearStr}-${randomSuffix}`;
     } else {
       registrationNumber = dbNumber as string;
     }
   } catch {
     const yearStr = new Date().getFullYear().toString();
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    registrationNumber = `PPDB-${yearStr}-${randomSuffix}`;
+    registrationNumber = `SPMB-${yearStr}-${randomSuffix}`;
   }
 
   // 8. Normalisasi Gender ke 'L' atau 'P'
@@ -220,7 +229,7 @@ export async function submitPublicRegistrationAction(
 
   // 9. Pemetaan data orang tua
   const parentName = parsed.data.father_name.trim();
-  const parentPhone = parsed.data.father_phone.trim();
+  const parentPhone = normalizePhone(parsed.data.father_phone.trim());
 
   // 10. Insert pendaftaran ke tabel student_registration_applications
   const { data: application, error: insertError } = await adminClient
@@ -237,10 +246,10 @@ export async function submitPublicRegistrationAction(
       parent_name: parentName,
       parent_phone: parentPhone,
       father_name: parsed.data.father_name.trim(),
-      father_phone: parsed.data.father_phone.trim(),
+      father_phone: parentPhone,
       father_occupation: parsed.data.father_occupation?.trim() || null,
       mother_name: parsed.data.mother_name.trim(),
-      mother_phone: parsed.data.mother_phone?.trim() || null,
+      mother_phone: parsed.data.mother_phone?.trim() ? normalizePhone(parsed.data.mother_phone.trim()) : null,
       status: 'submitted',
     })
     .select('id')
@@ -324,10 +333,15 @@ export async function checkRegistrationStatusAction(
   submittedAt: string;
   adminNotes: string | null;
 }>> {
+  // Batasi percobaan per IP agar pasangan nomor registrasi + HP tidak bisa ditebak massal.
+  if (!(await allowRequest('ppdbStatus', await getClientIp()))) {
+    return rateLimitedError('Terlalu banyak pengecekan status. Silakan coba lagi dalam 15 menit.');
+  }
+
   const adminClient = createAdminClient();
 
   const cleanReg = registrationNumber.trim();
-  const cleanPhone = parentPhone.trim();
+  const cleanPhone = normalizePhone(parentPhone.trim());
 
   const { data, error } = await adminClient
     .from('student_registration_applications')
@@ -357,7 +371,7 @@ export async function checkRegistrationStatusAction(
   const waveTitle = Array.isArray(waveData)
     ? (waveData[0] as { title?: string })?.title
     : (waveData as { title?: string })?.title;
-  const wave = waveTitle || 'Gelombang PPDB 2026/2027';
+  const wave = waveTitle || 'Gelombang SPMB 2026/2027';
 
   return {
     success: true,
@@ -439,7 +453,7 @@ export async function getRegistrationDocumentSignedUrlAction(
  */
 export async function promoteRegistrationToStudentAction(
   input: PromoteRegistrationInput
-): Promise<ActionResult<{ studentId: string; nis: string }>> {
+): Promise<ActionResult<{ studentId: string; nis: string; credentials: { name: string; login: string; initialPassword: string }[] }>> {
   const { user: currentUser } = await requireRole(['admin', 'super_admin']);
   const parsed = promoteRegistrationSchema.safeParse(input);
   if (!parsed.success) {
@@ -478,12 +492,15 @@ export async function promoteRegistrationToStudentAction(
 
   // Tentukan password awal murid: tempatlahir + ddmmyyyy
   const cleanPlace = (application.birth_place || 'fajar').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const cleanDate = (application.birth_date || '2019-01-01').replace(/-/g, '');
+  // Format resmi: tempat lahir + ddmmyyyy
+  const cleanDate = (application.birth_date || '2019-01-01').split('-').reverse().join('');
   const initialStudentPassword = `${cleanPlace}${cleanDate}`;
   const syntheticEmail = `${finalNis}@siswa.sdit-fajar.sch.id`;
 
   let studentAuthId: string | null = null;
   let parentProfileId: string | null = null;
+  let createdParentAuthId: string | null = null;
+  const credentials: { name: string; login: string; initialPassword: string }[] = [];
 
   try {
     // 2. Buat akun Auth Murid
@@ -546,7 +563,7 @@ export async function promoteRegistrationToStudentAction(
     if (existingParentProfile) {
       parentProfileId = existingParentProfile.id;
     } else {
-      const parentDefaultPassword = `WaliFajar${Math.floor(1000 + Math.random() * 9000)}!`;
+      const parentDefaultPassword = `WaliFajar${randomInt(100000, 1000000)}!`;
       const parentEmail = application.parent_email || `${parentPhone}@wali.sdit-fajar.sch.id`;
 
       const { data: parentAuth, error: parentAuthErr } = await adminClient.auth.admin.createUser({
@@ -565,6 +582,8 @@ export async function promoteRegistrationToStudentAction(
       }
 
       parentProfileId = parentAuth.user.id;
+      createdParentAuthId = parentAuth.user.id;
+      credentials.push({ name: application.parent_name, login: parentPhone, initialPassword: parentDefaultPassword });
 
       await adminClient.from('profiles').insert({
         id: parentProfileId,
@@ -637,12 +656,22 @@ export async function promoteRegistrationToStudentAction(
 
     return {
       success: true,
-      data: { studentId: studentRecord.id, nis: finalNis },
+      data: {
+        studentId: studentRecord.id,
+        nis: finalNis,
+        credentials: [
+          { name: application.student_name, login: finalNis, initialPassword: initialStudentPassword },
+          ...credentials,
+        ],
+      },
       message: `Ananda ${application.student_name} berhasil dipromosikan menjadi murid aktif dengan NIS ${finalNis}.`,
     };
   } catch (err: unknown) {
     if (studentAuthId) {
       await adminClient.auth.admin.deleteUser(studentAuthId).catch(() => {});
+    }
+    if (createdParentAuthId) {
+      await adminClient.auth.admin.deleteUser(createdParentAuthId).catch(() => {});
     }
     const errText = err instanceof Error ? err.message : 'Kesalahan sistem';
     return {

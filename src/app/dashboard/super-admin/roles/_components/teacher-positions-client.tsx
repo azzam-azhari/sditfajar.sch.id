@@ -40,7 +40,7 @@ export interface TeacherPositionItem {
   created_at: string;
   teachers?: {
     id: string;
-    nip: string | null;
+    nuptk: string;
     profiles?: {
       name: string;
       email: string | null;
@@ -63,7 +63,7 @@ export interface TeacherPositionItem {
 
 interface TeacherPositionsClientProps {
   initialAssignments: TeacherPositionItem[];
-  teachers: { id: string; nip: string | null; profiles?: { name: string } }[];
+  teachers: { id: string; nuptk: string; profiles?: { name: string } }[];
   positions: { id: string; name: string; code: string }[];
   classrooms: { id: string; name: string }[];
   academicYears: { id: string; name: string }[];
@@ -137,7 +137,7 @@ export function TeacherPositionsClient({
             {item.teachers?.profiles?.name || 'Tanpa Nama'}
           </span>
           <span className="text-[11px] text-muted-foreground font-mono">
-            NIP: {item.teachers?.nip || '-'}
+            NUPTK: {item.teachers?.nuptk || '-'}
           </span>
         </div>
       ),
@@ -259,7 +259,7 @@ export function TeacherPositionsClient({
                 <SelectContent>
                   {teachers.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
-                      {t.profiles?.name || `Guru (${t.nip || t.id.slice(0, 6)})`}
+                      {t.profiles?.name || `Guru (${t.nuptk || t.id.slice(0, 6)})`}
                     </SelectItem>
                   ))}
                 </SelectContent>

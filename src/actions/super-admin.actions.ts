@@ -1,5 +1,9 @@
 'use server';
 
+import { normalizePhone } from '@/lib/phone';
+import { deleteStorageFile, uploadStorageFile } from '@/lib/supabase/storage';
+import { writeAudit } from '@/lib/actions/helpers';
+
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireRole } from '@/lib/supabase/auth-helpers';
@@ -75,6 +79,50 @@ export async function updateSchoolSettingsAction(
   revalidatePath('/dashboard/super-admin/settings');
   revalidatePath('/kontak');
   return { success: true, data: undefined, message: 'Identitas sekolah berhasil diperbarui.' };
+}
+
+/**
+ * 1b. LOGO SEKOLAH (bucket publik `images`, path tetap agar tidak ada berkas yatim)
+ * URL diberi `?v=` agar cache CDN/browser ikut berganti saat logo diperbarui.
+ */
+const SCHOOL_LOGO_PATH = 'school/logo';
+
+async function setSchoolLogoUrl(logoUrl: string | null): Promise<ActionResult<void>> {
+  const supabase = await createClient();
+  const { data: existing } = await supabase.from('school_settings').select('id').limit(1).maybeSingle();
+  const { error } = existing
+    ? await supabase.from('school_settings').update({ logo_url: logoUrl }).eq('id', existing.id)
+    : await supabase.from('school_settings').insert({ logo_url: logoUrl });
+  if (error) return { success: false, error: error.message, code: 'SERVER_ERROR' };
+  revalidatePath('/', 'layout');
+  return { success: true, data: undefined };
+}
+
+export async function updateSchoolLogoAction(file: File | null): Promise<ActionResult<{ logo_url: string }>> {
+  await requireRole(['super_admin']);
+  if (!file || file.size === 0) {
+    return { success: false, error: 'Pilih berkas logo terlebih dahulu.', code: 'VALIDATION_ERROR' };
+  }
+  let publicUrl: string;
+  try {
+    const res = await uploadStorageFile('images', SCHOOL_LOGO_PATH, await file.arrayBuffer(), file.name, file.type, file.size);
+    publicUrl = `${res.publicUrl}?v=${Date.now()}`;
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Gagal mengunggah logo.', code: 'VALIDATION_ERROR' };
+  }
+  const saved = await setSchoolLogoUrl(publicUrl);
+  if (!saved.success) return saved;
+  await writeAudit('update_school_logo', 'school_settings', null, { logo_url: publicUrl });
+  return { success: true, data: { logo_url: publicUrl }, message: 'Logo sekolah berhasil diperbarui.' };
+}
+
+export async function removeSchoolLogoAction(): Promise<ActionResult<void>> {
+  await requireRole(['super_admin']);
+  const saved = await setSchoolLogoUrl(null);
+  if (!saved.success) return saved;
+  await deleteStorageFile('images', SCHOOL_LOGO_PATH).catch(() => undefined);
+  await writeAudit('remove_school_logo', 'school_settings', null, {});
+  return { success: true, data: undefined, message: 'Logo sekolah dihapus.' };
 }
 
 /**
@@ -201,13 +249,25 @@ export async function createStaffUserAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: 'Data staf tidak valid.',
+      error: parsed.error.issues[0]?.message ?? 'Data staf tidak valid.',
       fieldErrors: parsed.error.flatten().fieldErrors,
       code: 'VALIDATION_ERROR',
     };
   }
 
   const adminClient = createAdminClient();
+
+  if (parsed.data.role === 'guru') {
+    const { data: takenNuptk } = await adminClient
+      .from('teachers')
+      .select('id')
+      .eq('nuptk', parsed.data.nuptk as string)
+      .maybeSingle();
+    if (takenNuptk) {
+      return { success: false, error: 'NUPTK sudah terdaftar untuk guru lain.', code: 'DUPLICATE_ENTRY' };
+    }
+  }
+
   const defaultPassword = `FajarStaf${Math.floor(1000 + Math.random() * 9000)}!`;
 
   // 1. Buat akun Supabase Auth
@@ -239,7 +299,7 @@ export async function createStaffUserAction(
     email: parsed.data.email,
     login_identifier: parsed.data.email,
     role: parsed.data.role,
-    phone: parsed.data.phone || null,
+    phone: parsed.data.phone ? normalizePhone(parsed.data.phone) : null,
     is_active: true,
     must_change_password: true,
   });
@@ -254,8 +314,7 @@ export async function createStaffUserAction(
   if (parsed.data.role === 'guru') {
     const { error: teacherError } = await adminClient.from('teachers').insert({
       profile_id: newUserId,
-      nip: parsed.data.nip || null,
-      nuptk: parsed.data.nuptk || null,
+      nuptk: parsed.data.nuptk as string,
       bio: parsed.data.bio || null,
       is_active: true,
     });
@@ -263,7 +322,9 @@ export async function createStaffUserAction(
     if (teacherError) {
       await adminClient.from('profiles').delete().eq('id', newUserId);
       await adminClient.auth.admin.deleteUser(newUserId);
-      return { success: false, error: teacherError.message, code: 'SERVER_ERROR' };
+      return teacherError.code === '23505'
+        ? { success: false, error: 'NUPTK sudah terdaftar untuk guru lain.', code: 'DUPLICATE_ENTRY' }
+        : { success: false, error: teacherError.message, code: 'SERVER_ERROR' };
     }
   }
 

@@ -14,16 +14,20 @@ export const createStaffUserSchema = z.object({
   email: z.string().email('Format email tidak valid'),
   phone: z.string().min(9, 'Nomor WhatsApp/HP minimal 9 karakter').optional().nullable(),
   role: z.enum(['admin', 'guru'], { message: 'Role staf hanya boleh Admin atau Guru' }),
-  nip: z.string().optional().nullable(),
-  nuptk: z.string().optional().nullable(),
+  nuptk: z.string().trim().optional().nullable(),
   bio: z.string().optional().nullable(),
+}).superRefine((data, ctx) => {
+  // NUPTK adalah nomor induk guru: wajib 16 digit untuk akun guru.
+  if (data.role === 'guru' && !/^\d{16}$/.test(data.nuptk ?? '')) {
+    ctx.addIssue({ code: 'custom', path: ['nuptk'], message: 'NUPTK wajib 16 digit angka' });
+  }
 });
 
 export const assignTeacherPositionSchema = z.object({
-  teacher_id: z.string().uuid('ID Guru tidak valid'),
-  position_id: z.string().uuid('ID Jabatan tidak valid'),
-  classroom_id: z.string().uuid('ID Rombel tidak valid').optional().nullable(),
-  academic_year_id: z.string().uuid('ID Tahun Ajaran tidak valid').optional().nullable(),
+  teacher_id: z.guid('ID Guru tidak valid'),
+  position_id: z.guid('ID Jabatan tidak valid'),
+  classroom_id: z.guid('ID Rombel tidak valid').optional().nullable(),
+  academic_year_id: z.guid('ID Tahun Ajaran tidak valid').optional().nullable(),
 });
 
 export type SchoolSettingsInput = z.infer<typeof schoolSettingsSchema>;

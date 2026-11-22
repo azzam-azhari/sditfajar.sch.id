@@ -47,7 +47,7 @@ export interface ClassroomItem {
     name: string;
   };
   teachers?: {
-    nip: string | null;
+    nuptk: string;
     profiles?: {
       name: string;
     };
@@ -58,7 +58,7 @@ interface RombelClientProps {
   initialClassrooms: ClassroomItem[];
   classes: { id: string; name: string; grade_level: number }[];
   academicYears: { id: string; name: string }[];
-  teachers: { id: string; nip: string | null; profiles?: { name: string } }[];
+  teachers: { id: string; nuptk: string; profiles?: { name: string } }[];
 }
 
 export function RombelClient({
@@ -141,9 +141,9 @@ export function RombelClient({
               <span className="text-muted-foreground italic">Belum Ditetapkan</span>
             )}
           </span>
-          {item.teachers?.nip && (
+          {item.teachers?.nuptk && (
             <span className="text-[10px] text-muted-foreground font-mono">
-              NIP: {item.teachers.nip}
+              NUPTK: {item.teachers.nuptk}
             </span>
           )}
         </div>
@@ -298,7 +298,7 @@ export function RombelClient({
                   <SelectItem value="none">-- Belum Ditetapkan --</SelectItem>
                   {teachers.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
-                      {t.profiles?.name || `Guru (${t.nip})`}
+                      {t.profiles?.name || `Guru (${t.nuptk})`}
                     </SelectItem>
                   ))}
                 </SelectContent>

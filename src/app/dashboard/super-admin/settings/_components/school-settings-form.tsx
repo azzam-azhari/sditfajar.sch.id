@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { updateSchoolSettingsAction } from '@/actions/super-admin.actions';
-import { School, Phone, Mail, MapPin, Globe, Save } from 'lucide-react';
+import { removeSchoolLogoAction, updateSchoolSettingsAction, updateSchoolLogoAction } from '@/actions/super-admin.actions';
+import { useRouter } from 'next/navigation';
+import { School, Phone, Mail, MapPin, Globe, Save, ImageUp, Trash2 } from 'lucide-react';
 
 interface SchoolSettingsItem {
   id?: string;
@@ -17,6 +18,7 @@ interface SchoolSettingsItem {
   whatsapp?: string | null;
   email?: string | null;
   maps_url?: string | null;
+  logo_url?: string | null;
 }
 
 export function SchoolSettingsForm({
@@ -25,6 +27,31 @@ export function SchoolSettingsForm({
   initialSettings?: SchoolSettingsItem | null;
 }) {
   const [isPending, startTransition] = React.useTransition();
+  const [logoPending, startLogoTransition] = React.useTransition();
+  const router = useRouter();
+  const [logoFile, setLogoFile] = React.useState<File | null>(null);
+  const [logoInputKey, setLogoInputKey] = React.useState(0);
+  const logoUrl = initialSettings?.logo_url ?? null;
+
+  const uploadLogo = () =>
+    startLogoTransition(async () => {
+      const res = await updateSchoolLogoAction(logoFile);
+      if (res.success) {
+        toast.success(res.message);
+        setLogoFile(null);
+        setLogoInputKey((k) => k + 1);
+        router.refresh();
+      } else toast.error(res.error);
+    });
+
+  const removeLogo = () =>
+    startLogoTransition(async () => {
+      const res = await removeSchoolLogoAction();
+      if (res.success) {
+        toast.success(res.message);
+        router.refresh();
+      } else toast.error(res.error);
+    });
 
   const [schoolName, setSchoolName] = React.useState(
     initialSettings?.school_name || 'SDIT Fajar'
@@ -66,6 +93,48 @@ export function SchoolSettingsForm({
   };
 
   return (
+    <div className="space-y-6">
+      <Card className="border-border/80">
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <ImageUp className="size-4 text-primary" />
+            Logo Sekolah
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Tampil pada kuitansi pembayaran. JPG, PNG, atau WebP, maks. 5 MB; disarankan persegi dengan latar transparan.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex size-20 shrink-0 items-center justify-center rounded-lg border border-dashed border-border/80 bg-muted/30">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt="Logo sekolah saat ini" className="size-16 object-contain" />
+            ) : (
+              <span className="text-[11px] text-muted-foreground">Belum ada</span>
+            )}
+          </div>
+          <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+            <Input
+              key={logoInputKey}
+              type="file"
+              aria-label="Berkas logo sekolah"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)}
+              className="text-xs h-9"
+            />
+            <Button type="button" size="sm" className="text-xs h-9" disabled={!logoFile || logoPending} onClick={uploadLogo}>
+              <ImageUp className="size-3.5 mr-1.5" />
+              {logoPending ? 'Memproses...' : 'Unggah Logo'}
+            </Button>
+            {logoUrl && (
+              <Button type="button" size="sm" variant="outline" className="text-xs h-9 text-destructive" disabled={logoPending} onClick={removeLogo}>
+                <Trash2 className="size-3.5 mr-1.5" />
+                Hapus
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     <form onSubmit={handleSubmit}>
       <Card className="border-border/80">
         <CardHeader>
@@ -74,7 +143,7 @@ export function SchoolSettingsForm({
             Profil & Kontak Resmi SDIT Fajar
           </CardTitle>
           <CardDescription className="text-xs">
-            Perubahan identitas ini langsung berdampak pada footer web publik, kwitansi cetak, dan portal PPDB.
+            Perubahan identitas ini langsung berdampak pada footer web publik, kwitansi cetak, dan portal SPMB.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -118,7 +187,7 @@ export function SchoolSettingsForm({
             <div className="space-y-1">
               <Label className="text-xs flex items-center gap-1.5">
                 <Phone className="size-3 text-emerald-600" />
-                Nomor WhatsApp Layanan PPDB / Sekolah
+                Nomor WhatsApp Layanan SPMB / Sekolah
               </Label>
               <Input
                 required
@@ -167,5 +236,6 @@ export function SchoolSettingsForm({
         </CardFooter>
       </Card>
     </form>
+    </div>
   );
 }
