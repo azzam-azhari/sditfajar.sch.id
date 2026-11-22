@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- FASE 3: MIGRATION 07 - SEED SUPABASE AUTH USERS & IDENTITIES
 -- Mengaktifkan 7 Akun Demo di Supabase Auth (GoTrue) agar bisa langsung login
--- Kata Sandi Resmi Demo: Password123!
+-- Kata Sandi Resmi Demo: sditfajar.sch.id
 -- ==============================================================================
 
 set search_path = public, extensions, auth;
@@ -21,8 +21,8 @@ begin
   -- 1. Normalisasi string phone kosong jika ada dari percobaan sebelumnya
   update auth.users set phone = null where phone = '';
 
-  -- 2. Generate hash bcrypt yang valid untuk 'Password123!' langsung di database
-  v_encrypted_pw := crypt('Password123!', gen_salt('bf', 10));
+  -- 2. Generate hash bcrypt yang valid untuk 'sditfajar.sch.id' langsung di database
+  v_encrypted_pw := crypt('sditfajar.sch.id', gen_salt('bf', 10));
 
   -- 3. Insert / Update ke tabel auth.users (phone unik khusus wali murid, staf & murid bernilai NULL)
   insert into auth.users (
