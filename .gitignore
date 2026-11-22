@@ -51,3 +51,7 @@ graphify-out/
 /.claude
 /.gstack
 /.next-verify
+
+# Supabase migration seed data (kredensial & data uji lokal)
+/supabase/migration-final/seed/
+

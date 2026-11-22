@@ -29,6 +29,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Menubar } from '@/components/ui/menubar';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import {
   toggleUserActiveStatusAction,
@@ -36,6 +38,15 @@ import {
   createStaffUserAction,
 } from '@/actions/super-admin.actions';
 import { Search, UserPlus, KeyRound, CheckCircle2, XCircle, MoreHorizontal } from 'lucide-react';
+
+const ROLE_FILTER_OPTIONS = [
+  { value: 'all', label: 'Semua' },
+  { value: 'super_admin', label: 'Super Admin' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'guru', label: 'Guru' },
+  { value: 'murid', label: 'Murid' },
+  { value: 'wali_murid', label: 'Wali Murid' },
+] as const;
 
 interface UserProfileItem {
   id: string;
@@ -261,8 +272,8 @@ export function UserManagementClient({
     <div className="space-y-4">
       {/* Bar Pencarian & Filter */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex flex-1 items-center gap-2 max-w-md">
-          <div className="relative flex-1">
+        <div className="flex flex-1 flex-col lg:flex-row lg:items-center gap-2 min-w-0">
+          <div className="relative w-full lg:max-w-xs">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
             <Input
               placeholder="Cari nama, login ID, atau email..."
@@ -271,19 +282,29 @@ export function UserManagementClient({
               className="pl-8 text-xs h-9"
             />
           </div>
-          <Select value={selectedRole} onValueChange={setSelectedRole}>
-            <SelectTrigger className="w-[140px] text-xs h-9">
-              <SelectValue placeholder="Semua Role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Role</SelectItem>
-              <SelectItem value="super_admin">Super Admin</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="guru">Guru</SelectItem>
-              <SelectItem value="murid">Murid</SelectItem>
-              <SelectItem value="wali_murid">Wali Murid</SelectItem>
-            </SelectContent>
-          </Select>
+          <Menubar
+            aria-label="Filter role pengguna"
+            className="h-9 w-fit max-w-full shrink-0 overflow-x-auto"
+          >
+            {ROLE_FILTER_OPTIONS.map((option) => {
+              const active = selectedRole === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setSelectedRole(option.value)}
+                  className={cn(
+                    'flex h-full shrink-0 items-center rounded-sm px-2.5 text-xs font-medium whitespace-nowrap outline-hidden select-none transition-colors',
+                    'text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50',
+                    active && 'bg-muted text-foreground'
+                  )}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </Menubar>
         </div>
 
         <Button
