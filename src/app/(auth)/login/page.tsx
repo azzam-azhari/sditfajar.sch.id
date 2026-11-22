@@ -2,34 +2,22 @@
 
 import * as React from 'react';
 import { Suspense } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { loginAction } from '@/actions/auth.actions';
 import { toast } from 'sonner';
-import {
-  GraduationCap,
-  Users,
-  ShieldCheck,
-  Lock,
-  ArrowLeft,
-  Loader2,
-  AlertCircle,
-  Eye,
-  EyeOff,
-} from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
-function LoginFormContent() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
   const errorParam = searchParams.get('error');
 
-  const [roleType, setRoleType] = React.useState<'murid' | 'wali_murid' | 'staf'>('murid');
   const [identifier, setIdentifier] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
@@ -49,92 +37,34 @@ function LoginFormContent() {
     setErrorMessage(null);
 
     const cleanIdentifier = identifier.trim();
-
-    // 1. Validasi Client-Side Spesifik dengan Sonner
     if (!cleanIdentifier) {
-      if (roleType === 'murid') {
-        const msg = 'Nomor Induk Siswa (NIS) belum diisi.';
-        setErrorMessage(msg);
-        toast.error('NIS Belum Diisi', {
-          description: 'Silakan masukkan Nomor Induk Siswa (NIS) Anda terlebih dahulu.',
-          duration: 5000,
-        });
-      } else if (roleType === 'wali_murid') {
-        const msg = 'Nomor WhatsApp / HP belum diisi.';
-        setErrorMessage(msg);
-        toast.error('Nomor WhatsApp Belum Diisi', {
-          description: 'Silakan masukkan nomor WhatsApp yang didaftarkan saat pendaftaran PPDB.',
-          duration: 5000,
-        });
-      } else {
-        const msg = 'Email resmi dinas belum diisi.';
-        setErrorMessage(msg);
-        toast.error('Email Belum Diisi', {
-          description: 'Silakan masukkan email resmi @sditfajar.sch.id Anda.',
-          duration: 5000,
-        });
-      }
+      setErrorMessage('NIS, nomor WhatsApp, atau email belum diisi.');
+      toast.error('Identitas Akun Belum Diisi', {
+        description: 'Masukkan NIS (murid), nomor WhatsApp (wali murid), atau email sekolah (staf/guru).',
+      });
       return;
     }
-
     if (!password) {
-      const msg = 'Kata sandi wajib diisi.';
-      setErrorMessage(msg);
+      setErrorMessage('Kata sandi wajib diisi.');
       toast.error('Kata Sandi Belum Diisi', {
         description: 'Silakan masukkan kata sandi akun Anda untuk melanjutkan.',
-        duration: 5000,
       });
       return;
     }
 
     setLoading(true);
-
     try {
-      const result = await loginAction({
-        identifier: cleanIdentifier,
-        password,
-        roleType,
-      });
+      const result = await loginAction({ identifier: cleanIdentifier, password });
 
       if (!result.success) {
-        const title = result.title || 'Gagal Masuk';
-        const displayDesc = result.hint
-          ? `${result.error} ${result.hint}`
-          : result.error;
-
+        const displayDesc = result.hint ? `${result.error} ${result.hint}` : result.error;
         setErrorMessage(displayDesc);
-
-        // Jika salah tab, sediakan tombol aksi langsung di toast Sonner
-        if (result.code === 'ROLE_MISMATCH') {
-          let targetTab: 'murid' | 'wali_murid' | 'staf' = 'staf';
-          if (result.error.toLowerCase().includes('tab "murid"')) {
-            targetTab = 'murid';
-          } else if (result.error.toLowerCase().includes('tab "wali murid"')) {
-            targetTab = 'wali_murid';
-          }
-
-          toast.error(title, {
-            description: result.error,
-            duration: 8000,
-            action: {
-              label: 'Pindah Tab',
-              onClick: () => {
-                setRoleType(targetTab);
-                setErrorMessage(null);
-              },
-            },
-          });
-        } else {
-          toast.error(title, {
-            description: displayDesc,
-            duration: result.code === 'WRONG_PASSWORD' ? 8000 : 6000,
-          });
-        }
+        toast.error(result.title || 'Gagal Masuk', { description: displayDesc, duration: 6000 });
         return;
       }
 
       toast.success('Berhasil Masuk', {
-        description: 'Autentikasi terverifikasi. Mengarahkan ke sistem...',
+        description: 'Autentikasi terverifikasi. Mengarahkan ke dashboard...',
         duration: 3000,
       });
 
@@ -150,235 +80,129 @@ function LoginFormContent() {
           ? 'Perangkat Anda sedang offline. Periksa sambungan internet Anda.'
           : 'Gagal terhubung ke server sekolah. Periksa koneksi jaringan Anda atau coba beberapa saat lagi.';
       setErrorMessage(msg);
-      toast.error('Koneksi Terputus', {
-        description: msg,
-        duration: 6000,
-      });
+      toast.error('Koneksi Terputus', { description: msg });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-md space-y-6">
-        {/* Link Kembali ke Beranda */}
-        <div>
-          <Link
-            href="/"
-            className="inline-flex items-center text-xs text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-            Kembali ke Beranda SDIT Fajar
-          </Link>
-        </div>
-
-        {/* Card Login */}
-        <Card className="border border-border/80 shadow-sm">
-          <CardHeader className="space-y-1.5 pb-4 text-center">
-            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg border border-border/80 bg-muted/40 text-primary">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <CardTitle className="text-xl font-semibold tracking-tight text-foreground">
-              Portal Akademik Terpadu
-            </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground">
-              Masuk untuk mengakses materi, nilai, presensi, dan layanan sekolah
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-5">
-            {/* Tab Selector Role Identifier */}
-            <Tabs
-              value={roleType}
-              onValueChange={(val) => {
-                setRoleType(val as 'murid' | 'wali_murid' | 'staf');
-                setIdentifier('');
-                setPassword('');
-                setErrorMessage(null);
-              }}
-              className="w-full"
-            >
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="murid" className="text-xs">
-                  <GraduationCap className="mr-1.5 h-3.5 w-3.5" />
-                  Murid
-                </TabsTrigger>
-                <TabsTrigger value="wali_murid" className="text-xs">
-                  <Users className="mr-1.5 h-3.5 w-3.5" />
-                  Wali Murid
-                </TabsTrigger>
-                <TabsTrigger value="staf" className="text-xs">
-                  <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
-                  Staf / Guru
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Form Input */}
-              <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                {/* Alert Error */}
-                {errorMessage && (
-                  <div className="flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
-                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>{errorMessage}</span>
-                  </div>
-                )}
-
-                <TabsContent value="murid" className="space-y-3 pt-1">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="nis" className="text-xs font-medium text-foreground">
-                      Nomor Induk Siswa (NIS)
-                    </Label>
-                    <Input
-                      id="nis"
-                      type="text"
-                      placeholder="Contoh: 20261001"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      disabled={loading}
-                      className="font-mono text-sm"
-                      autoComplete="username"
-                    />
-                  </div>
-
-                  <div className="rounded-lg border border-border/60 bg-muted/30 p-2.5 text-xs text-muted-foreground">
-                    <p className="font-medium text-foreground">Petunjuk Password Awal Murid:</p>
-                    <p className="mt-0.5 leading-relaxed">
-                      Format: <code className="font-mono text-[11px] text-primary">tempatddmmyyyy</code> (tempat lahir huruf kecil tanpa spasi + 8 digit tanggal lahir).
-                      Contoh: <code className="font-mono text-[11px]">jakartaselatan30122015</code>
-                    </p>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="wali_murid" className="space-y-3 pt-1">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="phone" className="text-xs font-medium text-foreground">
-                      Nomor WhatsApp / HP Aktif
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="Contoh: 081234567890"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      disabled={loading}
-                      className="font-mono text-sm"
-                      autoComplete="username"
-                    />
-                  </div>
-
-                  <div className="rounded-lg border border-border/60 bg-muted/30 p-2.5 text-xs text-muted-foreground">
-                    <p className="font-medium text-foreground">Petunjuk Password Awal Wali:</p>
-                    <p className="mt-0.5 leading-relaxed">
-                      Password awal adalah nomor WhatsApp aktif yang didaftarkan saat pendaftaran PPDB.
-                    </p>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="staf" className="space-y-3 pt-1">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-xs font-medium text-foreground">
-                      Email Resmi Sekolah
-                    </Label>
-                    <Input
-                      id="email"
-                      type="text"
-                      placeholder="nama@sditfajar.sch.id"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      disabled={loading}
-                      className="text-sm"
-                      autoComplete="email"
-                    />
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Gunakan email dinas yang telah diverifikasi oleh Super Admin.
-                  </p>
-                </TabsContent>
-
-                {/* Password Input (Shared) */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-xs font-medium text-foreground">
-                      Kata Sandi
-                    </Label>
-                  </div>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      disabled={loading}
-                      className="pr-10 text-sm"
-                      autoComplete="current-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Tombol Submit */}
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full text-xs font-medium tracking-wide shadow-sm"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Memverifikasi Akun...
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="mr-2 h-3.5 w-3.5" />
-                      Masuk ke Sistem
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Tabs>
-
-            {/* Bantuan */}
-            <div className="border-t border-border/80 pt-3 text-center text-xs text-muted-foreground">
-              Kendala masuk akun? Hubungi panitia PPDB atau{' '}
-              <a
-                href="https://wa.me/6287737860657"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-primary underline underline-offset-4 hover:text-primary/80"
-              >
-                Layanan Bantuan IT
-              </a>
-            </div>
-          </CardContent>
-        </Card>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <div className="flex flex-col items-center gap-1 text-center">
+        <h1 className="text-2xl font-bold">Masuk ke Akun Anda</h1>
+        <p className="text-sm text-balance text-muted-foreground">
+          Satu akun untuk murid, wali murid, guru, dan staf
+        </p>
       </div>
-    </div>
+
+      {errorMessage && (
+        <div className="flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
+      <div className="grid gap-2">
+        <Label htmlFor="identifier">NIS / No. WhatsApp / Email</Label>
+        <Input
+          id="identifier"
+          type="text"
+          placeholder="20261001 · 0812… · nama@sditfajar.sch.id"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          disabled={loading}
+          autoComplete="username"
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="password">Kata Sandi</Label>
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            className="pr-10"
+            autoComplete="current-password"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-1.5 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
+
+      <Button type="submit" disabled={loading} className="w-full">
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Memverifikasi...
+          </>
+        ) : (
+          'Masuk'
+        )}
+      </Button>
+
+      <div className="rounded-lg border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+        <p className="font-medium text-foreground">Password awal</p>
+        <p>
+          Murid: <code className="font-mono text-primary">tempatddmmyyyy</code> (mis.{' '}
+          <code className="font-mono">jakartaselatan30122015</code>). Wali murid: nomor WhatsApp yang
+          didaftarkan saat SPMB.
+        </p>
+      </div>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Kendala masuk?{' '}
+        <a
+          href="https://wa.me/6287737860657"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-primary underline underline-offset-4"
+        >
+          Hubungi Bantuan IT
+        </a>
+      </p>
+    </form>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-background">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    <div className="grid min-h-svh bg-background lg:grid-cols-2">
+      <div className="flex flex-col gap-4 p-6 md:p-10">
+        <div className="flex justify-center gap-2 md:justify-start">
+          <Link href="/" className="flex items-center gap-2 font-semibold">
+            <Image src="/logo.png" alt="Logo SDIT Fajar" width={28} height={28} className="rounded-md" />
+            SDIT Fajar
+          </Link>
         </div>
-      }
-    >
-      <LoginFormContent />
-    </Suspense>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+            <Suspense fallback={<Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />}>
+              <LoginForm />
+            </Suspense>
+          </div>
+        </div>
+      </div>
+      <div className="relative hidden overflow-hidden bg-primary lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-10 lg:text-primary-foreground">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-foreground/20" />
+        <div className="relative flex max-w-sm flex-col items-center gap-6 text-center">
+          <div className="rounded-2xl bg-primary-foreground/95 p-5 shadow-lg">
+            <Image src="/logo.png" alt="" width={120} height={120} />
+          </div>
+          <h2 className="text-3xl font-bold tracking-tight">Portal Akademik Terpadu</h2>
+          <p className="text-primary-foreground/80">
+            Materi, nilai, presensi, dan layanan sekolah SDIT Fajar dalam satu tempat.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
