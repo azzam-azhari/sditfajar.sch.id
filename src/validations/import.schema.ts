@@ -11,11 +11,10 @@ export const studentCsvRowSchema = z.object({
 });
 
 export const teacherCsvRowSchema = z.object({
-  nip: z.string().min(5, 'NIP minimal 5 karakter'),
   name: z.string().min(3, 'Nama lengkap guru minimal 3 karakter'),
   email: z.string().email('Format email tidak valid'),
   phone: z.string().min(9, 'Nomor WhatsApp/HP minimal 9 karakter'),
-  nuptk: z.string().optional().nullable().default(''),
+  nuptk: z.string().trim().regex(/^\d{16}$/, 'NUPTK wajib 16 digit angka'),
 });
 
 export const parentCsvRowSchema = z.object({

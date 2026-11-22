@@ -209,8 +209,8 @@ export default async function SuperAdminDashboardPage() {
                 <span className="font-semibold text-emerald-600 font-mono">Server-Only</span>
               </div>
               <div className="flex justify-between items-center text-muted-foreground">
-                <span>Midtrans Production:</span>
-                <span className="font-semibold text-amber-600 font-mono">Terkunci (Fase 7)</span>
+                <span>Payment Gateway (Midtrans):</span>
+                <span className="font-semibold text-amber-600 font-mono">Ditunda</span>
               </div>
             </CardContent>
           </Card>

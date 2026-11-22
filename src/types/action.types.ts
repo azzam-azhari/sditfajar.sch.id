@@ -16,9 +16,9 @@ export type ActionError = {
     | 'VALIDATION_ERROR'
     | 'NOT_FOUND'
     | 'SERVER_ERROR'
-    | 'ROLE_MISMATCH'
     | 'WRONG_PASSWORD'
     | 'ACCOUNT_INACTIVE'
+    | 'RATE_LIMITED'
     | 'DUPLICATE_ENTRY'
     | 'STORAGE_ERROR';
 };

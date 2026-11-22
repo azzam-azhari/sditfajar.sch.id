@@ -4,6 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { requireRole } from '@/lib/supabase/auth-helpers';
 import { ActionResult } from '@/types/action.types';
 import { revalidatePath } from 'next/cache';
+import { randomInt } from 'crypto';
+import { normalizePhone } from '@/lib/phone';
 import {
   studentCsvRowSchema,
   teacherCsvRowSchema,
@@ -124,7 +126,7 @@ export async function validateCsvDataAction(
       validRows.push(parsed.data);
     }
   } else if (type === 'guru') {
-    const seenNip = new Set<string>();
+    const seenNuptk = new Set<string>();
     const seenEmail = new Set<string>();
 
     for (let i = 0; i < rows.length; i++) {
@@ -143,15 +145,15 @@ export async function validateCsvDataAction(
         continue;
       }
 
-      if (seenNip.has(parsed.data.nip)) {
+      if (seenNuptk.has(parsed.data.nuptk)) {
         errors.push({
           rowNumber: rowNum,
-          field: 'nip',
-          message: `Duplikasi NIP '${parsed.data.nip}' terdeteksi di dalam berkas CSV.`,
+          field: 'nuptk',
+          message: `Duplikasi NUPTK '${parsed.data.nuptk}' terdeteksi di dalam berkas CSV.`,
         });
         continue;
       }
-      seenNip.add(parsed.data.nip);
+      seenNuptk.add(parsed.data.nuptk);
 
       if (seenEmail.has(parsed.data.email.toLowerCase())) {
         errors.push({
@@ -175,6 +177,22 @@ export async function validateCsvDataAction(
           rowNumber: rowNum,
           field: 'email',
           message: `Email '${parsed.data.email}' sudah terdaftar pada sistem.`,
+        });
+        continue;
+      }
+
+      // Cek apakah NUPTK sudah dipakai guru lain
+      const { data: existingTeacher } = await adminClient
+        .from('teachers')
+        .select('id')
+        .eq('nuptk', parsed.data.nuptk)
+        .maybeSingle();
+
+      if (existingTeacher) {
+        errors.push({
+          rowNumber: rowNum,
+          field: 'nuptk',
+          message: `NUPTK '${parsed.data.nuptk}' sudah terdaftar pada sistem.`,
         });
         continue;
       }
@@ -231,246 +249,126 @@ export async function validateCsvDataAction(
   };
 }
 
+export interface ImportedCredential {
+  name: string;
+  login: string;
+  initialPassword: string;
+}
+
+function randomPassword(prefix: string): string {
+  return `${prefix}${randomInt(100000, 1000000)}!`;
+}
+
 /**
- * 2. COMMIT IMPORT ATOMIK
- * Tolak komit parsial bila ada baris korup demi integritas data!
+ * Komit import CSV secara atomik:
+ * 1. Validasi ulang seluruh baris di server (data dari client tidak dipercaya).
+ * 2. Buat akun auth.users (tidak bisa ikut transaksi database).
+ * 3. Seluruh data domain disimpan oleh RPC import_csv_batch dalam satu transaksi.
+ * 4. Jika langkah 3 gagal, akun auth yang sudah dibuat dihapus kembali.
+ * Kata sandi awal dikembalikan sekali ke super admin untuk dibagikan.
  */
 export async function commitCsvBatchAction(
   type: 'siswa' | 'guru' | 'wali_murid',
   rows: ImportCsvRow[]
-): Promise<ActionResult<{ batchId: string; successCount: number }>> {
+): Promise<ActionResult<{ batchId: string; successCount: number; credentials: ImportedCredential[] }>> {
   const { user: currentUser } = await requireRole(['super_admin']);
 
-  if (!rows || rows.length === 0) {
-    return {
-      success: false,
-      error: 'Tidak ada data valid yang dapat dieksekusi.',
-      code: 'VALIDATION_ERROR',
-    };
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return { success: false, error: 'Tidak ada data valid yang dapat dieksekusi.', code: 'VALIDATION_ERROR' };
+  }
+
+  // 1. Validasi ulang di server
+  const schema =
+    type === 'siswa' ? studentCsvRowSchema : type === 'guru' ? teacherCsvRowSchema : parentCsvRowSchema;
+  const parsedRows: ImportCsvRow[] = [];
+  for (let i = 0; i < rows.length; i++) {
+    const parsed = schema.safeParse(rows[i]);
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: `Baris ${i + 1} tidak valid: ${parsed.error.issues[0]?.message ?? 'format tidak sesuai'}`,
+        code: 'VALIDATION_ERROR',
+      };
+    }
+    parsedRows.push(parsed.data);
   }
 
   const adminClient = createAdminClient();
-  let successCount = 0;
   const createdUserIds: string[] = [];
+  const credentials: ImportedCredential[] = [];
+  const rpcRows: Record<string, unknown>[] = [];
+
+  const createAuthUser = async (email: string, password: string, metadata: Record<string, string>) => {
+    const { data, error } = await adminClient.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: metadata,
+    });
+    if (error || !data.user) throw new Error(`Gagal membuat akun ${email}: ${error?.message ?? 'tidak diketahui'}`);
+    createdUserIds.push(data.user.id);
+    return data.user.id;
+  };
 
   try {
+    // 2. Buat akun auth untuk setiap entitas baru
     if (type === 'siswa') {
-      // Ambil daftar kelas untuk pencocokan nama rombel
-      const { data: classrooms } = await adminClient.from('classrooms').select('id, name');
-      const classroomMap = new Map(classrooms?.map((c) => [c.name.toLowerCase().trim(), c.id]) || []);
-
-      for (const row of rows as StudentCsvRow[]) {
-        const cleanBirthPlace = row.birth_place.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const cleanBirthDate = row.birth_date.replace(/-/g, '');
-        const defaultPassword = `${cleanBirthPlace}${cleanBirthDate}`;
-        const syntheticEmail = `${row.nis}@siswa.sdit-fajar.sch.id`;
-
-        // Buat user auth Supabase
-        const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-          email: syntheticEmail,
-          password: defaultPassword,
-          email_confirm: true,
-          user_metadata: {
-            name: row.name,
-            role: 'murid',
-            login_identifier: row.nis,
-          },
-        });
-
-        if (authError || !authData.user) {
-          throw new Error(`Gagal membuat akun Auth untuk NIS ${row.nis}: ${authError?.message}`);
-        }
-
-        const studentUserId = authData.user.id;
-        createdUserIds.push(studentUserId);
-
-        // Buat profil
-        await adminClient.from('profiles').insert({
-          id: studentUserId,
-          name: row.name,
-          email: syntheticEmail,
-          login_identifier: row.nis,
-          role: 'murid',
-          is_active: true,
-          must_change_password: true,
-        });
-
-        // Buat data students
-        const { data: studentRecord, error: studentError } = await adminClient
-          .from('students')
-          .insert({
-            profile_id: studentUserId,
-            nis: row.nis,
-            gender: row.gender,
-            birth_place: row.birth_place,
-            birth_date: row.birth_date,
-            address: row.address || null,
-            is_active: true,
-          })
-          .select('id')
-          .single();
-
-        if (studentError || !studentRecord) {
-          throw new Error(`Gagal menyimpan data siswa NIS ${row.nis}: ${studentError?.message}`);
-        }
-
-        // Jika ada rombel cocok, masukkan ke class_students
-        if (row.classroom_name) {
-          const classId = classroomMap.get(row.classroom_name.toLowerCase().trim());
-          if (classId) {
-            await adminClient.from('class_students').insert({
-              classroom_id: classId,
-              student_id: studentRecord.id,
-              status: 'active',
-            });
-          }
-        }
-
-        successCount++;
+      for (const row of parsedRows as StudentCsvRow[]) {
+        const password = `${row.birth_place.toLowerCase().replace(/[^a-z0-9]/g, '')}${row.birth_date.split('-').reverse().join('')}`;
+        const email = `${row.nis}@siswa.sdit-fajar.sch.id`;
+        const profileId = await createAuthUser(email, password, { name: row.name, role: 'murid', login_identifier: row.nis });
+        rpcRows.push({ ...row, profile_id: profileId, email });
+        credentials.push({ name: row.name, login: row.nis, initialPassword: password });
       }
     } else if (type === 'guru') {
-      for (const row of rows as TeacherCsvRow[]) {
-        const defaultPassword = `FajarGuru${Math.floor(1000 + Math.random() * 9000)}!`;
-
-        const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-          email: row.email,
-          password: defaultPassword,
-          email_confirm: true,
-          user_metadata: {
-            name: row.name,
-            role: 'guru',
-            login_identifier: row.email,
-          },
-        });
-
-        if (authError || !authData.user) {
-          throw new Error(`Gagal membuat akun guru ${row.email}: ${authError?.message}`);
-        }
-
-        const teacherUserId = authData.user.id;
-        createdUserIds.push(teacherUserId);
-
-        await adminClient.from('profiles').insert({
-          id: teacherUserId,
-          name: row.name,
-          email: row.email,
-          login_identifier: row.email,
-          role: 'guru',
-          phone: row.phone,
-          is_active: true,
-          must_change_password: true,
-        });
-
-        await adminClient.from('teachers').insert({
-          profile_id: teacherUserId,
-          nip: row.nip,
-          nuptk: row.nuptk || null,
-          is_active: true,
-        });
-
-        successCount++;
+      for (const row of parsedRows as TeacherCsvRow[]) {
+        const password = randomPassword('FajarGuru');
+        const email = row.email.toLowerCase();
+        const profileId = await createAuthUser(email, password, { name: row.name, role: 'guru', login_identifier: email });
+        rpcRows.push({ ...row, email, phone: normalizePhone(row.phone), profile_id: profileId });
+        credentials.push({ name: row.name, login: email, initialPassword: password });
       }
-    } else if (type === 'wali_murid') {
-      for (const row of rows as ParentCsvRow[]) {
-        // Cek apakah akun wali murid dengan nomor HP ini sudah ada
-        const { data: existingProfile } = await adminClient
-          .from('profiles')
-          .select('id')
-          .eq('login_identifier', row.phone)
-          .eq('role', 'wali_murid')
-          .maybeSingle();
-
-        let parentProfileId: string;
-
-        if (existingProfile) {
-          parentProfileId = existingProfile.id;
-        } else {
-          const defaultPassword = `WaliFajar${Math.floor(1000 + Math.random() * 9000)}!`;
-          const syntheticEmail = row.email || `${row.phone}@wali.sdit-fajar.sch.id`;
-
-          const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-            email: syntheticEmail,
-            password: defaultPassword,
-            email_confirm: true,
-            user_metadata: {
-              name: row.parent_name,
-              role: 'wali_murid',
-              login_identifier: row.phone,
-            },
-          });
-
-          if (authError || !authData.user) {
-            throw new Error(`Gagal membuat akun wali murid ${row.phone}: ${authError?.message}`);
+    } else {
+      const profileByPhone = new Map<string, { id: string; isNew: boolean }>();
+      for (const row of parsedRows as ParentCsvRow[]) {
+        const phone = normalizePhone(row.phone);
+        let entry = profileByPhone.get(phone);
+        if (!entry) {
+          const { data: existing, error } = await adminClient
+            .from('profiles')
+            .select('id')
+            .eq('login_identifier', phone)
+            .eq('role', 'wali_murid')
+            .maybeSingle();
+          if (error) throw new Error(`Gagal memeriksa akun wali ${phone}: ${error.message}`);
+          if (existing) {
+            entry = { id: existing.id, isNew: false };
+          } else {
+            const password = randomPassword('WaliFajar');
+            const email = row.email ? row.email.toLowerCase() : `${phone}@wali.sdit-fajar.sch.id`;
+            const id = await createAuthUser(email, password, { name: row.parent_name, role: 'wali_murid', login_identifier: phone });
+            entry = { id, isNew: true };
+            credentials.push({ name: row.parent_name, login: phone, initialPassword: password });
           }
-
-          parentProfileId = authData.user.id;
-          createdUserIds.push(parentProfileId);
-
-          await adminClient.from('profiles').insert({
-            id: parentProfileId,
-            name: row.parent_name,
-            email: syntheticEmail,
-            login_identifier: row.phone,
-            role: 'wali_murid',
-            phone: row.phone,
-            is_active: true,
-            must_change_password: true,
-          });
-
-          await adminClient.from('parents').insert({
-            profile_id: parentProfileId,
-          });
+          profileByPhone.set(phone, entry);
         }
-
-        // Ambil ID tabel parents
-        const { data: parentRecord } = await adminClient
-          .from('parents')
-          .select('id')
-          .eq('profile_id', parentProfileId)
-          .single();
-
-        // Ambil student by NIS
-        const { data: studentRecord } = await adminClient
-          .from('students')
-          .select('id')
-          .eq('nis', row.student_nis)
-          .single();
-
-        if (parentRecord && studentRecord) {
-          await adminClient.from('parent_students').insert({
-            parent_id: parentRecord.id,
-            student_id: studentRecord.id,
-            relationship: row.relationship,
-            is_primary: true,
-          });
-        }
-
-        successCount++;
+        rpcRows.push({
+          ...row,
+          phone,
+          email: row.email ? row.email.toLowerCase() : `${phone}@wali.sdit-fajar.sch.id`,
+          profile_id: entry.id,
+          is_new: entry.isNew,
+        });
       }
     }
 
-    // Catat ke import_batches
-    const { data: batchData } = await adminClient
-      .from('import_batches')
-      .insert({
-        imported_by: currentUser.id,
-        entity_type: type,
-        template_version: '1.0',
-        total_rows: rows.length,
-        success_rows: successCount,
-        failed_rows: 0,
-      })
-      .select('id')
-      .single();
-
-    // Catat audit log
-    await adminClient.from('audit_logs').insert({
-      actor_id: currentUser.id,
-      action: 'commit_csv_batch',
-      entity_type: 'import_batches',
-      entity_id: batchData?.id || null,
-      metadata: { type, total_rows: rows.length, success_rows: successCount },
+    // 3. Simpan seluruh data domain dalam satu transaksi database
+    const { data: batchId, error: rpcError } = await adminClient.rpc('import_csv_batch', {
+      p_type: type,
+      p_actor: currentUser.id,
+      p_rows: rpcRows,
     });
+    if (rpcError) throw new Error(rpcError.message);
 
     revalidatePath('/dashboard/super-admin/import');
     revalidatePath('/dashboard/admin/siswa');
@@ -479,19 +377,26 @@ export async function commitCsvBatchAction(
 
     return {
       success: true,
-      data: { batchId: batchData?.id || 'done', successCount },
-      message: `Berhasil mengimpor ${successCount} baris data ${type} tanpa kesalahan.`,
+      data: { batchId: String(batchId), successCount: parsedRows.length, credentials },
+      message: `Berhasil mengimpor ${parsedRows.length} baris data ${type}.`,
     };
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Kesalahan server';
-    // Rollback akun yang sempat dibuat jika terjadi kegagalan di tengah jalan
+    // 4. Rollback akun auth yang sempat dibuat
+    const leftover: string[] = [];
     for (const id of createdUserIds) {
-      await adminClient.auth.admin.deleteUser(id).catch(() => {});
+      const { error } = await adminClient.auth.admin.deleteUser(id);
+      if (error) leftover.push(id);
+    }
+    if (leftover.length > 0) {
+      console.error('[Import] Akun auth gagal di-rollback, hapus manual:', leftover);
     }
 
     return {
       success: false,
-      error: `Transaksi import digagalkan demi menjaga keutuhan data: ${errorMessage}`,
+      error:
+        `Import dibatalkan, tidak ada data yang disimpan: ${errorMessage}` +
+        (leftover.length > 0 ? ` (${leftover.length} akun auth gagal dihapus, lihat log server)` : ''),
       code: 'SERVER_ERROR',
     };
   }

@@ -6,12 +6,17 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/page-header";
 import { RegistrationFormClient } from "./_components/registration-form-client";
 import { getPublicAdmissionWaves } from "@/actions/ppdb.actions";
+import { pageMeta } from "@/lib/seo/site";
+import { FAQ_SPMB } from "@/lib/seo/faq";
+import { FaqSection } from "@/components/seo/faq-section";
+import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
 
-export const metadata = {
-  title: "Pendaftaran PPDB Online — SDIT Fajar",
+export const metadata = pageMeta({
+  title: "Pendaftaran SPMB Online SD Islam Terpadu & Tahfidz Depok",
   description:
-    "Formulir resmi pendaftaran peserta didik baru (PPDB) daring SDIT Fajar. Kuota penerimaan dibatasi 100 murid baru demi efektivitas pembinaan tahfidz Al-Qur'an.",
-};
+    "Daftar online SPMB SDIT Fajar, SD Islam Terpadu dan sekolah tahfidz di Jatijajar, Tapos, Kota Depok. Lihat gelombang, biaya pendaftaran, alur, dan cek status. Kuota 100 murid.",
+  path: "/pendaftaran",
+});
 
 async function RegistrationSection() {
   const waves = await getPublicAdmissionWaves();
@@ -49,7 +54,7 @@ export default function PendaftaranPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-10">
       <PageHeader
-        title="Pendaftaran Peserta Didik Baru (PPDB)"
+        title="Pendaftaran Murid Baru (SPMB)"
         badge="Tahun Pelajaran 2026/2027"
         description="Portal pendaftaran daring murid baru SDIT Fajar. Kuota penerimaan dibatasi 100 murid baru (4 rombel) demi efektivitas pembinaan talaqqi Al-Qur'an dan penanaman adab islami."
       >
@@ -64,6 +69,9 @@ export default function PendaftaranPage() {
       <Suspense fallback={<RegistrationFormSkeleton />}>
         <RegistrationSection />
       </Suspense>
+
+      <FaqSection items={FAQ_SPMB} title="Tanya Jawab Pendaftaran SDIT Fajar" eyebrow="FAQ SPMB" />
+      <JsonLd data={breadcrumbSchema([{ name: "Beranda", path: "/" }, { name: "Pendaftaran", path: "/pendaftaran" }])} />
     </div>
   );
 }

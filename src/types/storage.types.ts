@@ -3,6 +3,7 @@ export const STORAGE_BUCKETS = [
   'lms-files',
   'registration-files',
   'marketplace-files',
+  'payment-files',
 ] as const;
 
 export type StorageBucket = (typeof STORAGE_BUCKETS)[number];
@@ -66,6 +67,13 @@ export const STORAGE_BUCKET_RULES: Record<StorageBucket, BucketRule> = {
     maxSizeBytes: 50 * 1024 * 1024, // 50 MB
     allowedMimeTypes: ['application/pdf', 'application/epub+zip'],
     allowedExtensions: ['.pdf', '.epub'],
+  },
+  'payment-files': {
+    bucket: 'payment-files',
+    isPrivate: true,
+    maxSizeBytes: 5 * 1024 * 1024, // 5 MB
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+    allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.pdf'],
   },
 };
 

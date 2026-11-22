@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +40,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/docs
+
+# graphify
+graphify-out/
+
+# konteks agent lokal (seperti /docs, tidak masuk repo)
+/.agents
+/.claude
+/.gstack
+/.next-verify
+
+# Supabase migration seed data (kredensial & data uji lokal)
+/supabase/migration-final/seed/
+

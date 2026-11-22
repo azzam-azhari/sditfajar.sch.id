@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const publicRegistrationSchema = z.object({
-  admission_wave_id: z.string().uuid('Pilih gelombang pendaftaran yang valid'),
+  admission_wave_id: z.guid('Pilih gelombang pendaftaran yang valid'),
   student_name: z.string().min(3, 'Nama calon murid minimal 3 karakter'),
   nik: z.string().regex(/^\d{16}$/, 'NIK wajib 16 digit angka'),
   gender: z.enum(['L', 'P'], { message: 'Jenis kelamin wajib dipilih' }),
@@ -23,15 +23,15 @@ export const publicRegistrationSchema = z.object({
 });
 
 export const updateRegistrationStatusSchema = z.object({
-  application_id: z.string().uuid('ID Pendaftaran tidak valid'),
+  application_id: z.guid('ID Pendaftaran tidak valid'),
   status: z.enum(['submitted', 'under_review', 'approved', 'rejected'], { message: 'Status tidak valid' }),
   admin_notes: z.string().optional().nullable(),
   observation_score: z.number().optional().nullable(),
 });
 
 export const promoteRegistrationSchema = z.object({
-  application_id: z.string().uuid('ID Pendaftaran tidak valid'),
-  classroom_id: z.string().uuid('Rombel kelas wajib dipilih').optional().nullable(),
+  application_id: z.guid('ID Pendaftaran tidak valid'),
+  classroom_id: z.guid('Rombel kelas wajib dipilih').optional().nullable(),
   nis: z.string().optional().nullable(),
 });
 

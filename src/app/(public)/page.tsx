@@ -1,3 +1,6 @@
+import { pageMeta } from "@/lib/seo/site";
+import { FAQ_UMUM } from "@/lib/seo/faq";
+import { FaqSection } from "@/components/seo/faq-section";
 import * as React from "react";
 import Link from "next/link";
 import {
@@ -10,18 +13,19 @@ import {
   Calendar,
   ChevronRight,
   ShoppingBag,
-  HelpCircle,
   Quote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/common/stat-card";
 import { StatusBadge } from "@/components/common/status-badge";
 
-export const metadata = {
-  title: "Beranda — SDIT Fajar",
+export const metadata = pageMeta({
+  title: "SDIT Fajar — SD Islam Terpadu & Sekolah Tahfidz di Tapos, Depok",
   description:
-    "Portal resmi SDIT Fajar. Sekolah Islam Terpadu berakreditasi A yang mendidik murid berakhlak mulia, cerdas, dan penghafal Al-Qur'an.",
-};
+    "SDIT Fajar: Sekolah Dasar Islam Terpadu terakreditasi A dengan program tahfidz Al-Qur'an min. 3 juz dan Kurikulum Merdeka di Jatijajar, Tapos, Kota Depok. Pendaftaran SPMB online dibuka.",
+  path: "/",
+  absoluteTitle: true,
+});
 
 export default function HomePage() {
   return (
@@ -40,13 +44,13 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-4 sm:space-y-6">
 
-            {/* PPDB Alert Pill */}
+            {/* SPMB Alert Pill */}
             <Link
               href="/pendaftaran"
               className="group inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 sm:px-3.5 sm:py-1 text-[11px] sm:text-xs font-semibold text-primary transition-all hover:bg-primary/15 max-w-full"
             >
               <span className="flex h-2 w-2 shrink-0 rounded-full bg-primary animate-pulse" />
-              <span className="truncate">PPDB TP 2026/2027 Telah Dibuka</span>
+              <span className="truncate">SPMB TP 2026/2027 Telah Dibuka</span>
               <span className="hidden sm:inline text-muted-foreground">•</span>
               <span className="hidden sm:inline text-foreground/80 group-hover:text-foreground">
                 Kuota Terbatas 100 Murid
@@ -77,7 +81,7 @@ export default function HomePage() {
                 className="w-full sm:w-auto h-11 px-6 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm active:scale-[0.99] transition-transform"
               >
                 <Link href="/pendaftaran" className="flex items-center justify-center gap-2">
-                  <span>Daftar PPDB Online</span>
+                  <span>Daftar SPMB Online</span>
                   <ArrowRight className="h-4 w-4 shrink-0" />
                 </Link>
               </Button>
@@ -138,7 +142,7 @@ export default function HomePage() {
             icon={<BookOpen className="h-5 w-5" />}
           />
           <StatCard
-            title="Sisa Kuota PPDB"
+            title="Sisa Kuota SPMB"
             value="32 Kursi"
             description="Dari total 100 kursi gelombang 1-3"
             isMono
@@ -223,7 +227,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. PPDB BANNER & SISA KURSI */}
+      {/* 4. SPMB BANNER & SISA KURSI */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card p-6 sm:p-10 shadow-xs">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
@@ -236,7 +240,7 @@ export default function HomePage() {
                 </span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                Penerimaan Peserta Didik Baru (PPDB) 2026/2027
+                Sistem Penerimaan Murid Baru (SPMB) 2026/2027
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl">
                 Kuota siswa baru dibatasi ketat <strong>100 murid (4 rombel)</strong> untuk menjaga rasio pendampingan guru maksimal. Pendaftaran dilakukan secara daring dan verifikasi berkas langsung oleh panitia.
@@ -458,49 +462,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8. FAQ SECTION */}
-      <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-            Tanya Jawab
-          </span>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl mt-1">
-            Pertanyaan yang Sering Diajukan
-          </h2>
-        </div>
-
-        <div className="space-y-4">
-          <div className="rounded-xl border border-border/80 bg-card p-5 space-y-2">
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <HelpCircle className="h-4 w-4 text-primary shrink-0" />
-              Berapa kuota penerimaan murid baru setiap tahunnya?
-            </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed pl-6">
-              SDIT Fajar membatasi kuota tepat 100 murid baru setiap tahun ajaran (terbagi ke dalam 4 rombel kelas, masing-masing 25 murid) demi menjaga efektivitas pembelajaran talaqqi dan pendampingan personal guru.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-border/80 bg-card p-5 space-y-2">
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <HelpCircle className="h-4 w-4 text-primary shrink-0" />
-              Apakah calon siswa harus sudah hafal huruf hijaiyah saat mendaftar?
-            </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed pl-6">
-              Tidak wajib. Tim guru akan melakukan tes pemetaan kesiapan belajar dan penempatan kelas tahsin yang ramah anak saat observasi, sehingga murid akan dibimbing bertahap dari tingkat dasar.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-border/80 bg-card p-5 space-y-2">
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <HelpCircle className="h-4 w-4 text-primary shrink-0" />
-              Bagaimana alur pembayaran SPP dan biaya pendidikan?
-            </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed pl-6">
-              Seluruh tagihan SPP dan daftar ulang dikelola transparan melalui portal resmi orang tua terhubung dengan payment gateway Midtrans (Snap Modal) yang mendukung Virtual Account bank dan QRIS.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* 8. FAQ SECTION (sekaligus schema FAQPage) */}
+      <FaqSection items={FAQ_UMUM} />
 
       {/* 9. FINAL CTA */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -513,7 +476,7 @@ export default function HomePage() {
           </p>
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button asChild size="lg" className="w-full sm:w-auto text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6">
-              <Link href="/pendaftaran">Daftar Sekarang (PPDB 2026/2027)</Link>
+              <Link href="/pendaftaran">Daftar Sekarang (SPMB 2026/2027)</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="w-full sm:w-auto text-xs font-medium h-11 px-6">
               <Link href="/kontak">Hubungi Kami & Kunjungan Sekolah</Link>

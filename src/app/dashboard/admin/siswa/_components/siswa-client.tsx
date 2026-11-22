@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { updateStudentBiodataAction } from '@/actions/academic.actions';
+import { DatePicker } from "@/components/common/date-picker";
 import { Search, Edit, CheckCircle2, XCircle, MoreHorizontal } from 'lucide-react';
 
 export interface StudentItem {
@@ -323,12 +324,16 @@ export function SiswaClient({ initialStudents, classrooms }: SiswaClientProps) {
 
             <div className="space-y-1">
               <Label className="text-xs">Tanggal Lahir</Label>
-              <Input
+              <DatePicker
                 required
-                type="date"
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-                className="text-xs h-8 font-mono"
+                onChange={setBirthDate}
+                className="h-8"
+                startYear={new Date().getFullYear() - 20}
+                endYear={new Date().getFullYear()}
+                max={new Date().toISOString().slice(0, 10)}
+                defaultMonth={`${new Date().getFullYear() - 8}-07-01`}
+                placeholder="Pilih tanggal lahir"
               />
             </div>
 

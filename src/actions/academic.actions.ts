@@ -73,6 +73,37 @@ export async function createAcademicYearAction(
   return { success: true, data: { id: data.id }, message: 'Tahun ajaran berhasil dibuat.' };
 }
 
+export async function setActiveAcademicYearAction(id: string): Promise<ActionResult<null>> {
+  const { user } = await requireRole(['admin', 'super_admin']);
+  if (!/^[0-9a-f-]{36}$/i.test(id)) {
+    return { success: false, error: 'Tahun ajaran tidak valid.', code: 'VALIDATION_ERROR' };
+  }
+
+  const supabase = await createClient();
+  const { data: year } = await supabase.from('academic_years').select('id, name').eq('id', id).maybeSingle();
+  if (!year) return { success: false, error: 'Tahun ajaran tidak ditemukan.', code: 'NOT_FOUND' };
+
+  const { error: resetError } = await supabase
+    .from('academic_years')
+    .update({ is_active: false })
+    .neq('id', id);
+  if (resetError) return { success: false, error: resetError.message, code: 'SERVER_ERROR' };
+
+  const { error } = await supabase.from('academic_years').update({ is_active: true }).eq('id', id);
+  if (error) return { success: false, error: error.message, code: 'SERVER_ERROR' };
+
+  await supabase.from('audit_logs').insert({
+    actor_id: user.id,
+    action: 'activate_academic_year',
+    entity_type: 'academic_years',
+    entity_id: id,
+    metadata: { name: year.name },
+  });
+
+  revalidatePath('/dashboard', 'layout');
+  return { success: true, data: null, message: `Tahun ajaran ${year.name} diaktifkan.` };
+}
+
 export async function createSemesterAction(
   input: SemesterInput
 ): Promise<ActionResult<{ id: string }>> {

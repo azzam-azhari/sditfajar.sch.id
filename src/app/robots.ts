@@ -1,14 +1,15 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/seo/site";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://sditfajar.sch.id";
-
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/dashboard/", "/api/"],
+      // Bukti pendaftaran berisi data pribadi calon murid — jangan diindeks.
+      disallow: ["/dashboard/", "/api/", "/login", "/ganti-password", "/pendaftaran/sukses/"],
     },
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }

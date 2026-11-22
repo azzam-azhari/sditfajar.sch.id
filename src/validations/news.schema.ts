@@ -8,8 +8,6 @@ export const newsPostSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Slug hanya boleh huruf kecil, angka, dan tanda hubung (-)'),
   excerpt: z.string().optional().nullable(),
   content: z.string().min(10, 'Konten berita minimal 10 karakter'),
-  cover_url: z.string().optional().nullable(),
-  cover_path: z.string().optional().nullable(),
   status: z.enum(['draft', 'published', 'archived']).default('draft'),
 });
 

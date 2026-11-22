@@ -8,7 +8,7 @@ export const academicYearSchema = z.object({
 });
 
 export const semesterSchema = z.object({
-  academic_year_id: z.string().uuid('ID Tahun Ajaran tidak valid'),
+  academic_year_id: z.guid('ID Tahun Ajaran tidak valid'),
   name: z.string().min(3, 'Nama semester minimal 3 karakter (misal: Ganjil / Genap)'),
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal awal YYYY-MM-DD'),
   end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal akhir YYYY-MM-DD'),
@@ -16,8 +16,8 @@ export const semesterSchema = z.object({
 });
 
 export const schoolPeriodSettingsSchema = z.object({
-  academic_year_id: z.string().uuid('ID Tahun Ajaran tidak valid'),
-  semester_id: z.string().uuid('ID Semester tidak valid').nullable().optional(),
+  academic_year_id: z.guid('ID Tahun Ajaran tidak valid'),
+  semester_id: z.guid('ID Semester tidak valid').nullable().optional(),
   active_month: z.number().int().min(1).max(12, 'Bulan aktif harus antara 1 sampai 12'),
   active_year: z.number().int().min(2020).max(2050, 'Tahun aktif tidak valid'),
   teacher_weekend_attendance_enabled: z.boolean().default(false),
@@ -30,10 +30,10 @@ export const classLevelSchema = z.object({
 });
 
 export const classroomSchema = z.object({
-  class_id: z.string().uuid('Tingkat kelas wajib dipilih'),
-  academic_year_id: z.string().uuid('Tahun ajaran wajib dipilih'),
+  class_id: z.guid('Tingkat kelas wajib dipilih'),
+  academic_year_id: z.guid('Tahun ajaran wajib dipilih'),
   name: z.string().min(2, 'Nama rombel minimal 2 karakter (misal: 1-A Abu Bakar)'),
-  homeroom_teacher_id: z.string().uuid('ID Wali Kelas tidak valid').optional().nullable(),
+  homeroom_teacher_id: z.guid('ID Wali Kelas tidak valid').optional().nullable(),
   is_active: z.boolean().default(true),
 });
 
@@ -45,10 +45,10 @@ export const subjectSchema = z.object({
 });
 
 export const teachingAssignmentSchema = z.object({
-  teacher_id: z.string().uuid('Guru pengampu wajib dipilih'),
-  subject_id: z.string().uuid('Mata pelajaran wajib dipilih'),
-  classroom_id: z.string().uuid('Rombel wajib dipilih'),
-  semester_id: z.string().uuid('Semester wajib dipilih'),
+  teacher_id: z.guid('Guru pengampu wajib dipilih'),
+  subject_id: z.guid('Mata pelajaran wajib dipilih'),
+  classroom_id: z.guid('Rombel wajib dipilih'),
+  semester_id: z.guid('Semester wajib dipilih'),
 });
 
 export const studentBiodataSchema = z.object({

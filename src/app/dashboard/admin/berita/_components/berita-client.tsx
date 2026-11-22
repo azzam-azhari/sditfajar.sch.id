@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +34,18 @@ import { toast } from 'sonner';
 import { createNewsAction, updateNewsAction, deleteNewsAction } from '@/actions/news.actions';
 import { Newspaper, Plus, Edit, Trash2, Globe, MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
+
+// Server action menerima body via proxy (batas ~10MB); cover dibatasi 5 MB di client
+// agar request tidak terpotong ("Unexpected end of form").
+const MAX_COVER_BYTES = 5 * 1024 * 1024;
+const COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+function coverError(file: File | null): string | null {
+  if (!file) return null;
+  if (!COVER_TYPES.includes(file.type)) return 'Format cover harus JPG, PNG, atau WebP.';
+  if (file.size > MAX_COVER_BYTES) return `Ukuran cover ${(file.size / 1024 / 1024).toFixed(1)} MB melebihi batas 5 MB.`;
+  return null;
+}
 
 export interface NewsItem {
   id: string;
@@ -63,7 +76,8 @@ export function BeritaClient({ initialPosts }: { initialPosts: NewsItem[] }) {
   const [slug, setSlug] = React.useState('');
   const [excerpt, setExcerpt] = React.useState('');
   const [content, setContent] = React.useState('');
-  const [coverUrl, setCoverUrl] = React.useState('');
+  const [coverFile, setCoverFile] = React.useState<File | null>(null);
+  const [removeCover, setRemoveCover] = React.useState(false);
   const [status, setStatus] = React.useState<'draft' | 'published'>('draft');
 
   const openCreateModal = () => {
@@ -72,7 +86,8 @@ export function BeritaClient({ initialPosts }: { initialPosts: NewsItem[] }) {
     setSlug('');
     setExcerpt('');
     setContent('');
-    setCoverUrl('');
+    setCoverFile(null);
+    setRemoveCover(false);
     setStatus('draft');
     setIsOpen(true);
   };
@@ -83,7 +98,8 @@ export function BeritaClient({ initialPosts }: { initialPosts: NewsItem[] }) {
     setSlug(item.slug);
     setExcerpt(item.excerpt || '');
     setContent(item.content);
-    setCoverUrl(item.cover_url || '');
+    setCoverFile(null);
+    setRemoveCover(false);
     setStatus(item.status === 'published' ? 'published' : 'draft');
     setIsOpen(true);
   };
@@ -103,16 +119,18 @@ export function BeritaClient({ initialPosts }: { initialPosts: NewsItem[] }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const invalidCover = coverError(coverFile);
+    if (invalidCover) {
+      toast.error(invalidCover);
+      return;
+    }
     startTransition(async () => {
       if (editingPost) {
-        const res = await updateNewsAction(editingPost.id, {
-          title,
-          slug,
-          excerpt,
-          content,
-          cover_url: coverUrl || null,
-          status,
-        });
+        const res = await updateNewsAction(
+          editingPost.id,
+          { title, slug, excerpt, content, status },
+          { file: coverFile, remove: removeCover }
+        );
 
         if (res.success) {
           toast.success(res.message);
@@ -122,14 +140,7 @@ export function BeritaClient({ initialPosts }: { initialPosts: NewsItem[] }) {
           toast.error(res.error);
         }
       } else {
-        const res = await createNewsAction({
-          title,
-          slug,
-          excerpt,
-          content,
-          cover_url: coverUrl || null,
-          status,
-        });
+        const res = await createNewsAction({ title, slug, excerpt, content, status }, coverFile);
 
         if (res.success) {
           toast.success(res.message);
@@ -185,18 +196,21 @@ export function BeritaClient({ initialPosts }: { initialPosts: NewsItem[] }) {
       ),
     },
     {
-      header: 'Penulis & Tanggal',
+      header: 'Penerbit',
       cell: (item) => (
-        <div>
-          <span className="text-xs text-foreground block font-medium">
-            {item.profiles?.name || 'Humas SDIT Fajar'}
-          </span>
-          <span className="text-[11px] text-muted-foreground font-mono">
-            {item.published_at
-              ? new Date(item.published_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })
-              : 'Belum Terbit'}
-          </span>
-        </div>
+        <span className="text-xs text-foreground font-medium">
+          {item.profiles?.name || 'Humas SDIT Fajar'}
+        </span>
+      ),
+    },
+    {
+      header: 'Tanggal Terbit',
+      cell: (item) => (
+        <span className="text-[11px] text-muted-foreground font-mono">
+          {item.published_at
+            ? new Date(item.published_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })
+            : 'Belum Terbit'}
+        </span>
       ),
     },
     {
@@ -271,37 +285,42 @@ export function BeritaClient({ initialPosts }: { initialPosts: NewsItem[] }) {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-3.5 py-2">
-            <div className="space-y-1">
-              <Label className="text-xs">Judul Artikel Berita</Label>
+          <form onSubmit={handleSubmit} className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="news-title" className="text-xs font-medium">Judul Artikel Berita</Label>
               <Input
+                id="news-title"
                 required
                 placeholder="Contoh: Murid SDIT Fajar Raih Juara 1 MHQ Tingkat Kota Depok"
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                className="text-xs h-8"
+                className="h-9 w-full text-sm"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Slug URL</Label>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="min-w-0 space-y-1.5">
+                <Label htmlFor="news-slug" className="text-xs font-medium">Slug URL</Label>
                 <Input
+                  id="news-slug"
                   required
                   placeholder="murid-raih-juara-1-mhq"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  className="text-xs h-8 font-mono"
+                  className="h-9 w-full font-mono text-sm"
                 />
+                <p className="truncate text-[11px] text-muted-foreground">
+                  Alamat: /berita/{slug || 'slug-artikel'}
+                </p>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs">Status Publikasi</Label>
+              <div className="min-w-0 space-y-1.5">
+                <Label htmlFor="news-status" className="text-xs font-medium">Status Publikasi</Label>
                 <Select
                   value={status}
                   onValueChange={(v: 'draft' | 'published') => setStatus(v)}
                 >
-                  <SelectTrigger className="text-xs h-8">
+                  <SelectTrigger id="news-status" className="h-9 w-full text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -309,46 +328,76 @@ export function BeritaClient({ initialPosts }: { initialPosts: NewsItem[] }) {
                     <SelectItem value="published">Terbit (Published - Tayang di Web)</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  Hanya artikel berstatus Terbit yang tampil di website.
+                </p>
               </div>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs">Cuplikan Ringkas (Excerpt)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="news-excerpt" className="text-xs font-medium">Cuplikan Ringkas (Excerpt)</Label>
               <Input
-                placeholder="Ringkasan 1-2 kalimat untuk kartu cuplikan..."
+                id="news-excerpt"
+                placeholder="Ringkasan 1–2 kalimat untuk kartu cuplikan..."
                 value={excerpt}
                 onChange={(e) => setExcerpt(e.target.value)}
-                className="text-xs h-8"
+                className="h-9 w-full text-sm"
               />
+              <p className="text-[11px] text-muted-foreground">Tampil di kartu berita & hasil pencarian Google.</p>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs">URL Gambar Cover (Opsional)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="news-cover" className="text-xs font-medium">
+                Foto Cover <span className="font-normal text-muted-foreground">(Opsional · JPG/PNG/WebP, maks. 5 MB)</span>
+              </Label>
+              {editingPost?.cover_url && !coverFile && !removeCover && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={editingPost.cover_url} alt="Cover saat ini" className="h-20 w-36 rounded-md border border-border/80 object-cover" />
+              )}
               <Input
-                placeholder="https://images.unsplash.com/... atau path bucket images"
-                value={coverUrl}
-                onChange={(e) => setCoverUrl(e.target.value)}
-                className="text-xs h-8 font-mono"
+                id="news-cover"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  const invalid = coverError(file);
+                  if (invalid) {
+                    toast.error(invalid);
+                    e.target.value = '';
+                    setCoverFile(null);
+                    return;
+                  }
+                  setCoverFile(file);
+                  setRemoveCover(false);
+                }}
+                className="h-9 w-full cursor-pointer py-1 text-sm text-muted-foreground file:mr-3 file:h-7 file:cursor-pointer file:rounded-md file:border-0 file:bg-muted file:px-3 file:text-xs file:font-medium file:text-foreground"
               />
+              {editingPost?.cover_url && !coverFile && (
+                <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <input type="checkbox" checked={removeCover} onChange={(e) => setRemoveCover(e.target.checked)} />
+                  Hapus cover saat ini
+                </label>
+              )}
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs">Isi Lengkap Berita</Label>
-              <textarea
+            <div className="space-y-1.5">
+              <Label htmlFor="news-content" className="text-xs font-medium">Isi Lengkap Berita</Label>
+              <Textarea
+                id="news-content"
                 required
-                rows={7}
-                placeholder="Tuliskan isi berita selengkapnya di sini..."
+                rows={8}
+                placeholder="Tuliskan isi berita selengkapnya di sini... (pisahkan paragraf dengan baris kosong)"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                className="min-h-40 w-full resize-y text-sm"
               />
             </div>
 
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => setIsOpen(false)}>
+            <DialogFooter className="gap-2 border-t pt-4">
+              <Button type="button" variant="outline" className="h-9" onClick={() => setIsOpen(false)}>
                 Batal
               </Button>
-              <Button type="submit" size="sm" className="text-xs" disabled={isPending}>
+              <Button type="submit" className="h-9" disabled={isPending}>
                 {isPending ? 'Menyimpan...' : 'Simpan Artikel'}
               </Button>
             </DialogFooter>

@@ -98,10 +98,10 @@ export function PublicFooter() {
             </ul>
           </div>
 
-          {/* Column 3: Layanan PPDB & Siswa */}
+          {/* Column 3: Layanan SPMB & Siswa */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              Layanan & PPDB
+              Layanan & SPMB
             </h3>
             <ul className="space-y-2 text-xs text-muted-foreground">
               <li>
@@ -109,7 +109,7 @@ export function PublicFooter() {
                   href="/pendaftaran"
                   className="hover:text-primary transition-colors flex items-center gap-1 font-medium text-primary"
                 >
-                  <span>Pendaftaran Murid Baru (PPDB)</span>
+                  <span>Pendaftaran Murid Baru (SPMB)</span>
                   <ArrowUpRight className="h-3 w-3" />
                 </Link>
               </li>
@@ -185,7 +185,7 @@ export function PublicFooter() {
               Tentang Kami
             </Link>
             <Link href="/pendaftaran" className="hover:text-foreground transition-colors">
-              Informasi PPDB
+              Informasi SPMB
             </Link>
             <Link href="/kontak" className="hover:text-foreground transition-colors">
               Peta Lokasi

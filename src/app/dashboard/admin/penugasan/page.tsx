@@ -22,7 +22,7 @@ export default async function AdminPenugasanPage() {
         created_at,
         teachers (
           id,
-          nip,
+          nuptk,
           profiles (
             name
           )
@@ -46,7 +46,7 @@ export default async function AdminPenugasanPage() {
       `)
       .order('created_at', { ascending: false }),
 
-    supabase.from('teachers').select('id, nip, profiles(name)').eq('is_active', true),
+    supabase.from('teachers').select('id, nuptk, profiles(name)').eq('is_active', true),
     supabase.from('subjects').select('id, name, code').eq('is_active', true),
     supabase.from('classrooms').select('id, name').eq('is_active', true),
     supabase.from('semesters').select('id, name, academic_years(name)').eq('is_active', true),
@@ -65,7 +65,7 @@ export default async function AdminPenugasanPage() {
 
       <PenugasanClient
         initialAssignments={(assignments as unknown as AssignmentItem[]) || []}
-        teachers={(teachers as unknown as { id: string; nip: string | null; profiles?: { name: string } }[]) || []}
+        teachers={(teachers as unknown as { id: string; nuptk: string; profiles?: { name: string } }[]) || []}
         subjects={subjects || []}
         classrooms={classrooms || []}
         semesters={(semesters as unknown as { id: string; name: string; academic_years?: { name: string } }[]) || []}

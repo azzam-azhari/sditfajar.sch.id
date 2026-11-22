@@ -23,7 +23,7 @@ export default async function SuperAdminRolesPage() {
         created_at,
         teachers (
           id,
-          nip,
+          nuptk,
           profiles (
             name,
             email
@@ -49,7 +49,7 @@ export default async function SuperAdminRolesPage() {
       .from('teachers')
       .select(`
         id,
-        nip,
+        nuptk,
         profiles (
           name
         )
@@ -74,7 +74,7 @@ export default async function SuperAdminRolesPage() {
 
       <TeacherPositionsClient
         initialAssignments={(assignments as unknown as TeacherPositionItem[]) || []}
-        teachers={(teachers as unknown as { id: string; nip: string | null; profiles?: { name: string } }[]) || []}
+        teachers={(teachers as unknown as { id: string; nuptk: string; profiles?: { name: string } }[]) || []}
         positions={positions || []}
         classrooms={classrooms || []}
         academicYears={academicYears || []}

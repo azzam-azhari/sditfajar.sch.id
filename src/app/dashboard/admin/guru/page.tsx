@@ -6,8 +6,7 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 
 interface TeacherItem {
   id: string;
-  nip: string | null;
-  nuptk: string | null;
+  nuptk: string;
   bio: string | null;
   is_active: boolean;
   profiles?: {
@@ -32,7 +31,6 @@ export default async function AdminGuruPage() {
     .from('teachers')
     .select(`
       id,
-      nip,
       nuptk,
       bio,
       is_active,
@@ -64,18 +62,9 @@ export default async function AdminGuruPage() {
       ),
     },
     {
-      header: 'NIP / NUPTK',
+      header: 'NUPTK',
       isMono: true,
-      cell: (item) => (
-        <div>
-          <span className="font-mono text-xs text-foreground block">
-            {item.nip || 'NIP: -'}
-          </span>
-          <span className="font-mono text-[10px] text-muted-foreground">
-            {item.nuptk ? `NUPTK: ${item.nuptk}` : '-'}
-          </span>
-        </div>
-      ),
+      cell: (item) => <span className="font-mono text-xs text-foreground">{item.nuptk || '-'}</span>,
     },
     {
       header: 'No. WhatsApp / HP',

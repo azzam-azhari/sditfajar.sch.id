@@ -16,9 +16,9 @@ export async function GET(request: NextRequest) {
 `;
   } else if (type === 'guru') {
     filename = 'template_import_guru.csv';
-    csvContent = `nip,name,email,phone,nuptk
-198501102010011001,Ustadz Abdullah S.Pd.I,abdullah@sdit-fajar.sch.id,081298765431,9876543210123456
-199002152015022002,Ustadzah Nurul Hidayah M.Pd,nurul@sdit-fajar.sch.id,081298765432,8765432109876543
+    csvContent = `nuptk,name,email,phone
+9876543210123456,Ustadz Abdullah S.Pd.I,abdullah@sdit-fajar.sch.id,081298765431
+8765432109876543,Ustadzah Nurul Hidayah M.Pd,nurul@sdit-fajar.sch.id,081298765432
 `;
   } else if (type === 'wali_murid') {
     filename = 'template_import_wali_murid.csv';

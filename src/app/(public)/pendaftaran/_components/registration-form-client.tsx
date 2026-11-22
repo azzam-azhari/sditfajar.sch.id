@@ -332,7 +332,7 @@ export function RegistrationFormClient({ waves }: RegistrationFormClientProps) {
                 Langkah 1: Pilih Gelombang Pendaftaran
               </h3>
               <p className="text-xs text-muted-foreground">
-                Pilih salah satu gelombang pendaftaran yang sedang dibuka oleh panitia PPDB.
+                Pilih salah satu gelombang pendaftaran yang sedang dibuka oleh panitia SPMB.
               </p>
             </div>
 
@@ -534,6 +534,8 @@ export function RegistrationFormClient({ waves }: RegistrationFormClientProps) {
                     required
                     startYear={2012}
                     endYear={new Date().getFullYear()}
+                    defaultMonth={`${new Date().getFullYear() - 7}-07-01`}
+                    placeholder="Pilih tanggal lahir"
                   />
                 </div>
               </div>

@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { PublicNavbar } from "@/components/common/public-navbar";
 import { PublicFooter } from "@/components/common/public-footer";
 import { FloatingWhatsapp } from "@/components/common/floating-whatsapp";
+import { JsonLd, schoolSchema, websiteSchema } from "@/components/seo/json-ld";
 
 export default function PublicLayout({
   children,
@@ -14,6 +15,7 @@ export default function PublicLayout({
       <Suspense fallback={<div className="h-16 w-full border-b border-border/80 bg-background" />}>
         <PublicNavbar />
       </Suspense>
+      <JsonLd data={[schoolSchema(), websiteSchema()]} />
       <main className="flex-1">{children}</main>
       <PublicFooter />
       <FloatingWhatsapp />

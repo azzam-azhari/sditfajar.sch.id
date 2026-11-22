@@ -32,11 +32,16 @@ import {
   HeartHandshake,
   Newspaper,
   Globe,
-  KeyRound,
+  Megaphone,
+  ShoppingBag,
+  BookMarked,
+  Wallet,
+  Receipt,
   GraduationCap as SchoolLogoIcon,
 } from "lucide-react"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  positions?: string[];
   user?: {
     name: string
     email: string
@@ -62,7 +67,7 @@ function getPortalLabel(role: string): string {
   }
 }
 
-export function AppSidebar({ user, ...props }: AppSidebarProps) {
+export function AppSidebar({ user, positions = [], ...props }: AppSidebarProps) {
   const pathname = usePathname()
 
   // Tentukan role berdasarkan prop atau URL path
@@ -107,11 +112,26 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       url: "/dashboard/super-admin/import",
       icon: <FileSpreadsheet className="size-4" />,
     },
+    {
+      title: "Pengumuman",
+      url: "/dashboard/pengumuman",
+      icon: <Megaphone className="size-4" />,
+    },
+    {
+      title: "Marketplace",
+      url: "/dashboard/marketplace",
+      icon: <ShoppingBag className="size-4" />,
+    },
+    {
+      title: "Pengaturan Pembayaran",
+      url: "/dashboard/super-admin/pembayaran",
+      icon: <Wallet className="size-4" />,
+    },
   ]
 
   const superAdminNavDocs = [
     {
-      name: "Verifikasi PPDB",
+      name: "Verifikasi SPMB",
       url: "/dashboard/admin/pendaftaran",
       icon: <UserCheck className="size-4" />,
     },
@@ -140,7 +160,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       icon: <LayoutDashboard className="size-4" />,
     },
     {
-      title: "Verifikasi PPDB",
+      title: "Verifikasi SPMB",
       url: "/dashboard/admin/pendaftaran",
       icon: <UserCheck className="size-4" />,
     },
@@ -165,9 +185,29 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       icon: <ShieldCheck className="size-4" />,
     },
     {
+      title: "Jadwal Pelajaran",
+      url: "/dashboard/jadwal",
+      icon: <CalendarDays className="size-4" />,
+    },
+    {
       title: "Berita Sekolah",
       url: "/dashboard/admin/berita",
       icon: <Newspaper className="size-4" />,
+    },
+    {
+      title: "Pengumuman",
+      url: "/dashboard/pengumuman",
+      icon: <Megaphone className="size-4" />,
+    },
+    {
+      title: "Marketplace",
+      url: "/dashboard/marketplace",
+      icon: <ShoppingBag className="size-4" />,
+    },
+    {
+      title: "Tagihan & Pembayaran",
+      url: "/dashboard/admin/tagihan",
+      icon: <Receipt className="size-4" />,
     },
   ]
 
@@ -194,8 +234,12 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     { title: "Materi", url: "/dashboard/guru/materi", icon: <BookOpen className="size-4" /> },
     { title: "Tugas & Penilaian", url: "/dashboard/guru/tugas", icon: <ShieldCheck className="size-4" /> },
     { title: "Buku Nilai", url: "/dashboard/guru/nilai", icon: <GraduationCap className="size-4" /> },
+    { title: "Jadwal", url: "/dashboard/jadwal", icon: <CalendarDays className="size-4" /> },
     { title: "Presensi Guru", url: "/dashboard/guru/presensi", icon: <CalendarDays className="size-4" /> },
     { title: "Presensi Murid", url: "/dashboard/guru/presensi-siswa", icon: <UserCheck className="size-4" /> },
+    { title: "Tahfidz", url: "/dashboard/guru/tahfidz", icon: <BookMarked className="size-4" /> },
+    { title: "Pengumuman", url: "/dashboard/pengumuman", icon: <Megaphone className="size-4" /> },
+    ...(positions.includes("bendahara") ? [{ title: "Keuangan", url: "/dashboard/guru/keuangan", icon: <Wallet className="size-4" /> }] : []),
   ]
   const studentNavMain = [
     { title: "Dashboard", url: "/dashboard/murid", icon: <LayoutDashboard className="size-4" /> },
@@ -203,13 +247,20 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     { title: "Materi", url: "/dashboard/murid/materi", icon: <BookOpen className="size-4" /> },
     { title: "Tugas Saya", url: "/dashboard/murid/tugas", icon: <ShieldCheck className="size-4" /> },
     { title: "Nilai Saya", url: "/dashboard/murid/nilai", icon: <GraduationCap className="size-4" /> },
+    { title: "Hafalan Qur'an", url: "/dashboard/murid/tahfidz", icon: <BookMarked className="size-4" /> },
+    { title: "Pengumuman", url: "/dashboard/pengumuman", icon: <Megaphone className="size-4" /> },
   ]
   const parentNavMain = [
     { title: "Dashboard", url: "/dashboard/wali-murid", icon: <LayoutDashboard className="size-4" /> },
     { title: "Data Anak", url: "/dashboard/wali-murid/anak", icon: <GraduationCap className="size-4" /> },
     { title: "Tugas Anak", url: "/dashboard/wali-murid/tugas", icon: <ShieldCheck className="size-4" /> },
     { title: "Nilai Anak", url: "/dashboard/wali-murid/nilai", icon: <BookOpen className="size-4" /> },
+    { title: "Jadwal Anak", url: "/dashboard/jadwal", icon: <CalendarDays className="size-4" /> },
     { title: "Presensi Anak", url: "/dashboard/wali-murid/absensi", icon: <CalendarDays className="size-4" /> },
+    { title: "Hafalan Anak", url: "/dashboard/wali-murid/tahfidz", icon: <BookMarked className="size-4" /> },
+    { title: "Pengumuman", url: "/dashboard/pengumuman", icon: <Megaphone className="size-4" /> },
+    { title: "Marketplace", url: "/dashboard/wali-murid/marketplace", icon: <ShoppingBag className="size-4" /> },
+    { title: "Tagihan & Pembayaran", url: "/dashboard/wali-murid/tagihan", icon: <Receipt className="size-4" /> },
   ]
 
   const navSecondary = [
@@ -217,11 +268,6 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       title: "Website Sekolah",
       url: "/",
       icon: <Globe className="size-4" />,
-    },
-    {
-      title: "Ganti Password",
-      url: "/ganti-password",
-      icon: <KeyRound className="size-4" />,
     },
   ]
 

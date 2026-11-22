@@ -5,66 +5,81 @@ import { usePathname } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ThemeToggle } from "@/components/common/theme-toggle"
-import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
+import { AcademicYearSelect, type AcademicYearOption } from "@/components/academic-year-select"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 
-function formatPathTitle(pathname: string): { title: string; subtitle?: string } {
-  if (pathname.includes("/dashboard/super-admin/users")) {
-    return { title: "Manajemen Pengguna", subtitle: "Super Admin" }
-  }
-  if (pathname.includes("/dashboard/super-admin/roles")) {
-    return { title: "Penugasan Jabatan Guru", subtitle: "Super Admin" }
-  }
-  if (pathname.includes("/dashboard/super-admin/audit-logs")) {
-    return { title: "Audit Log Aktivitas", subtitle: "Super Admin" }
-  }
-  if (pathname.includes("/dashboard/super-admin/settings")) {
-    return { title: "Pengaturan Identitas Sekolah", subtitle: "Super Admin" }
-  }
-  if (pathname.includes("/dashboard/super-admin/import")) {
-    return { title: "Import Data Massal CSV", subtitle: "Super Admin" }
-  }
-  if (pathname === "/dashboard/super-admin") {
-    return { title: "Dashboard Super Admin", subtitle: "Sistem & Kontrol Sentral" }
-  }
+const ROLE_SEGMENTS = ["super-admin", "admin", "guru", "murid", "wali-murid"]
 
-  // Admin routes
-  if (pathname.includes("/dashboard/admin/pendaftaran")) {
-    return { title: "Verifikasi Pendaftaran PPDB", subtitle: "Admin Akademik" }
-  }
-  if (pathname.includes("/dashboard/admin/tahun-ajaran")) {
-    return { title: "Tahun Ajaran & Periode", subtitle: "Admin Akademik" }
-  }
-  if (pathname.includes("/dashboard/admin/rombel")) {
-    return { title: "Rombongan Belajar & Kelas", subtitle: "Admin Akademik" }
-  }
-  if (pathname.includes("/dashboard/admin/mapel")) {
-    return { title: "Master Mata Pelajaran", subtitle: "Admin Akademik" }
-  }
-  if (pathname.includes("/dashboard/admin/penugasan")) {
-    return { title: "Penugasan Mengajar Guru", subtitle: "Admin Akademik" }
-  }
-  if (pathname.includes("/dashboard/admin/siswa")) {
-    return { title: "Data Pokok Murid", subtitle: "Admin Akademik" }
-  }
-  if (pathname.includes("/dashboard/admin/guru")) {
-    return { title: "Data Pendidik & Tenaga Kependidikan", subtitle: "Admin Akademik" }
-  }
-  if (pathname.includes("/dashboard/admin/wali-murid")) {
-    return { title: "Data Wali Murid & Relasi Anak", subtitle: "Admin Akademik" }
-  }
-  if (pathname.includes("/dashboard/admin/berita")) {
-    return { title: "Manajemen Berita Sekolah", subtitle: "Admin Akademik" }
-  }
-  if (pathname === "/dashboard/admin") {
-    return { title: "Dashboard Administrator", subtitle: "Operasional Akademik" }
-  }
-
-  return { title: "Portal Manajemen", subtitle: "SDIT Fajar" }
+const SEGMENT_LABELS: Record<string, string> = {
+  dashboard: "Dashboard",
+  "super-admin": "Super Admin",
+  admin: "Admin",
+  guru: "Guru",
+  murid: "Murid",
+  "wali-murid": "Wali Murid",
+  users: "Manajemen Pengguna",
+  roles: "Jabatan Guru",
+  settings: "Identitas Sekolah",
+  "audit-logs": "Audit Log",
+  import: "Import CSV",
+  pembayaran: "Pembayaran",
+  pendaftaran: "Verifikasi SPMB",
+  "tahun-ajaran": "Tahun Ajaran & Periode",
+  rombel: "Rombel & Kelas",
+  mapel: "Mata Pelajaran",
+  penugasan: "Penugasan Mengajar",
+  siswa: "Data Murid",
+  berita: "Berita Sekolah",
+  tagihan: "Tagihan & Pembayaran",
+  materi: "Materi",
+  tugas: "Tugas",
+  nilai: "Nilai",
+  presensi: "Presensi",
+  "presensi-siswa": "Presensi Murid",
+  tahfidz: "Tahfidz",
+  keuangan: "Keuangan",
+  jadwal: "Jadwal",
+  pengumuman: "Pengumuman",
+  marketplace: "Marketplace",
+  kuitansi: "Kuitansi",
+  anak: "Data Anak",
+  absensi: "Presensi Anak",
 }
 
-export function SiteHeader() {
+function labelFor(segment: string): string {
+  if (SEGMENT_LABELS[segment]) return SEGMENT_LABELS[segment]
+  // Segmen dinamis (UUID / angka / id panjang) tampil sebagai "Detail".
+  if (/^[0-9a-f-]{8,}$/i.test(segment) || /\d/.test(segment)) return "Detail"
+  const text = decodeURIComponent(segment).replace(/-/g, " ")
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+function buildCrumbs(pathname: string): { href: string; label: string }[] {
+  const segments = pathname.split("/").filter(Boolean)
+  const crumbs = segments.map((segment, i) => ({
+    href: "/" + segments.slice(0, i + 1).join("/"),
+    label: labelFor(segment),
+  }))
+  // /dashboard/<role>/... → mulai dari role; root role tampil "<Role> › Dashboard".
+  if (segments[0] === "dashboard" && ROLE_SEGMENTS.includes(segments[1])) {
+    const rest = crumbs.slice(1)
+    if (rest.length === 1) rest.push({ href: rest[0].href, label: "Dashboard" })
+    return rest
+  }
+  return crumbs
+}
+
+export function SiteHeader({ academicYears }: { academicYears?: AcademicYearOption[] }) {
   const pathname = usePathname()
-  const { title, subtitle } = formatPathTitle(pathname)
+  const crumbs = buildCrumbs(pathname)
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b rounded-t-xl transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -73,20 +88,32 @@ export function SiteHeader() {
           <SidebarTrigger className="-ml-1 shrink-0" />
           <Separator
             orientation="vertical"
-            className="mx-1 shrink-0 sm:mx-2 data-[orientation=vertical]:h-4"
+            className="mx-1 shrink-0 sm:mx-2 data-vertical:h-4 data-vertical:self-center"
           />
-          <div className="flex min-w-0 items-center gap-2">
-            <h1 className="min-w-0 truncate text-sm font-semibold tracking-tight text-foreground sm:text-base">
-              {title}
-            </h1>
-            {subtitle && (
-              <Badge variant="outline" className="hidden shrink-0 sm:inline-flex text-[10px] py-0 px-1.5 font-normal text-muted-foreground border-border/80">
-                {subtitle}
-              </Badge>
-            )}
-          </div>
+          <Breadcrumb className="min-w-0">
+            <BreadcrumbList className="flex-nowrap">
+              {crumbs.map((crumb, i) => {
+                const isLast = i === crumbs.length - 1
+                return (
+                  <React.Fragment key={`${crumb.href}-${i}`}>
+                    {i > 0 && <BreadcrumbSeparator className="hidden md:block" />}
+                    <BreadcrumbItem className={isLast ? "min-w-0" : "hidden md:inline-flex"}>
+                      {isLast ? (
+                        <BreadcrumbPage className="truncate font-medium">{crumb.label}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink asChild>
+                          <Link href={crumb.href}>{crumb.label}</Link>
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                  </React.Fragment>
+                )
+              })}
+            </BreadcrumbList>
+          </Breadcrumb>
         </div>
-        <div className="ml-auto flex shrink-0 items-center">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {academicYears && <AcademicYearSelect years={academicYears} />}
           <ThemeToggle />
         </div>
       </div>

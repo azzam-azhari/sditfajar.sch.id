@@ -36,7 +36,7 @@ export interface AssignmentItem {
   created_at: string;
   teachers?: {
     id: string;
-    nip: string | null;
+    nuptk: string;
     profiles?: {
       name: string;
     };
@@ -61,7 +61,7 @@ export interface AssignmentItem {
 
 interface PenugasanClientProps {
   initialAssignments: AssignmentItem[];
-  teachers: { id: string; nip: string | null; profiles?: { name: string } }[];
+  teachers: { id: string; nuptk: string; profiles?: { name: string } }[];
   subjects: { id: string; name: string; code: string | null }[];
   classrooms: { id: string; name: string }[];
   semesters: { id: string; name: string; academic_years?: { name: string } }[];
@@ -132,7 +132,7 @@ export function PenugasanClient({
             {item.teachers?.profiles?.name || 'Tanpa Nama'}
           </span>
           <span className="text-[10px] text-muted-foreground font-mono">
-            NIP: {item.teachers?.nip || '-'}
+            NUPTK: {item.teachers?.nuptk || '-'}
           </span>
         </div>
       ),
@@ -230,7 +230,7 @@ export function PenugasanClient({
                 <SelectContent>
                   {teachers.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
-                      {t.profiles?.name || `Guru (${t.nip})`}
+                      {t.profiles?.name || `Guru (${t.nuptk})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
