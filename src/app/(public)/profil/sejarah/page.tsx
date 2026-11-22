@@ -1,20 +1,22 @@
+import { pageMeta } from "@/lib/seo/site";
 ﻿import * as React from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/page-header";
 
-export const metadata = {
-  title: "Sejarah Sekolah — SDIT Fajar",
+export const metadata = pageMeta({
+  title: "Sejarah Sekolah",
   description:
-    "Perjalanan sejarah pendirian dan tonggak capaian SDIT Fajar sejak tahun 2015 hingga saat ini.",
-};
+    "Perjalanan sejarah pendirian SDIT Fajar di Jatijajar, Tapos, Kota Depok sejak 2015 serta tonggak capaian sekolah tahfidz ini hingga saat ini.",
+  path: "/profil/sejarah",
+});
 
 const MILESTONES = [
   {
     year: "2015",
     title: "Pendirian Yayasan & Gagasan Awal",
-    desc: "Didirikan oleh para tokoh pendidik dan da'i di Cilodong Depok yang bertekad menghadirkan sekolah dasar Islam terpadu bermutu tinggi dengan biaya yang terjangkau oleh masyarakat.",
+    desc: "Didirikan oleh para tokoh pendidik dan da'i di Jatijajar, Tapos, Depok yang bertekad menghadirkan sekolah dasar Islam terpadu bermutu tinggi dengan biaya yang terjangkau oleh masyarakat.",
   },
   {
     year: "2016",
@@ -34,7 +36,7 @@ const MILESTONES = [
   {
     year: "2026",
     title: "Digitalisasi Sistem & Peluncuran Portal Terpadu",
-    desc: "Mengimplementasikan platform manajemen sekolah digital, pembayaran terpadu Midtrans, PPDB daring transparan berkuota 100 murid, dan marketplace buku sekolah.",
+    desc: "Mengimplementasikan platform manajemen sekolah digital, pembayaran SPP daring dengan verifikasi bukti transfer, SPMB daring transparan berkuota 100 murid, dan marketplace buku sekolah.",
   },
 ];
 
@@ -65,7 +67,7 @@ export default function SejarahPage() {
             Kelahiran SDIT Fajar berawal dari kegelisahan bersama para pendidik muslim di Depok terhadap minimnya lembaga pendidikan dasar yang mampu memadukan antara kekuatan hafalan Al-Qur&apos;an dengan penguasaan kurikulum umum berstandar nasional secara seimbang.
           </p>
           <p>
-            Dengan izin Allah Subhanahu wa Ta&apos;ala serta dukungan wakaf dan gotong royong para muhsinin, pada tahun 2015 dimulailah pembangunan sarana belajar pertama di kawasan Cilodong. Sejak itu, SDIT Fajar terus berbenah secara berkelanjutan meningkatkan kualitas pendidik, sarana pembelajaran, hingga sistem administrasi modern.
+            Dengan izin Allah Subhanahu wa Ta&apos;ala serta dukungan wakaf dan gotong royong para muhsinin, pada tahun 2015 dimulailah pembangunan sarana belajar pertama di kawasan Jatijajar, Tapos. Sejak itu, SDIT Fajar terus berbenah secara berkelanjutan meningkatkan kualitas pendidik, sarana pembelajaran, hingga sistem administrasi modern.
           </p>
         </div>
       </section>

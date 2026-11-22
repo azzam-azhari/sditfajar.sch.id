@@ -1,11 +1,13 @@
 import { cacheLife, cacheTag } from 'next/cache';
-import { createPublicClient } from '@/lib/supabase/public';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export interface ArticleItem {
   slug: string;
   title: string;
   category: "Prestasi" | "Kegiatan" | "Pengumuman" | "Akademik";
   date: string;
+  /** ISO date untuk SEO (sitemap, schema). Kosong pada artikel statis. */
+  publishedAt?: string;
   author: string;
   excerpt: string;
 }
@@ -14,6 +16,8 @@ export interface DetailArticleItem {
   title: string;
   category: "Prestasi" | "Kegiatan" | "Pengumuman" | "Akademik";
   date: string;
+  /** ISO date untuk SEO (sitemap, schema). Kosong pada artikel statis. */
+  publishedAt?: string;
   author: string;
   content: string[];
   tags: string[];
@@ -106,7 +110,8 @@ export async function getPublicNewsList(): Promise<ArticleItem[]> {
   cacheTag('news');
 
   try {
-    const supabase = createPublicClient();
+    // Admin client: RLS profiles hanya untuk authenticated, anon tak bisa baca nama penulis.
+    const supabase = createAdminClient();
     const { data: dbPosts, error } = await supabase
       .from('news_posts')
       .select(`
@@ -141,6 +146,7 @@ export async function getPublicNewsList(): Promise<ArticleItem[]> {
           ? new Date(post.published_at).toLocaleDateString("id-ID", { dateStyle: "medium" })
           : "Terbaru",
         author: authorName || "Humas SDIT Fajar",
+        publishedAt: post.published_at ?? undefined,
         excerpt: post.excerpt || "Warta terbaru dari publikasi resmi SDIT Fajar.",
       };
     });
@@ -164,7 +170,8 @@ export async function getPublicNewsBySlug(slug: string): Promise<DetailArticleIt
   cacheTag('news', `news:${slug}`);
 
   try {
-    const supabase = createPublicClient();
+    // Admin client: RLS profiles hanya untuk authenticated, anon tak bisa baca nama penulis.
+    const supabase = createAdminClient();
     const { data: dbPost, error } = await supabase
       .from('news_posts')
       .select(`
@@ -194,6 +201,7 @@ export async function getPublicNewsBySlug(slug: string): Promise<DetailArticleIt
           ? new Date(dbPost.published_at).toLocaleDateString("id-ID", { dateStyle: "full" })
           : "Terbaru",
         author: authorName || "Humas SDIT Fajar",
+        publishedAt: dbPost.published_at ?? undefined,
         content: dbPost.content.split(/\n\n+/),
         tags: ["SDIT Fajar", "Warta Resmi", "Pendidikan"],
       };

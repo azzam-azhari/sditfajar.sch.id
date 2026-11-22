@@ -1,14 +1,16 @@
+import { pageMeta } from "@/lib/seo/site";
 ﻿import * as React from "react";
 import Link from "next/link";
 import { GraduationCap, Award, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/page-header";
 
-export const metadata = {
-  title: "Manajemen Sekolah — SDIT Fajar",
+export const metadata = pageMeta({
+  title: "Manajemen, Yayasan & Dewan Guru",
   description:
-    "Susunan pimpinan sekolah, dewan pembina yayasan, dan jajaran Dewan Guru SDIT Fajar.",
-};
+    "Susunan pimpinan sekolah, dewan pembina yayasan, dan jajaran guru SDIT Fajar, SD Islam Terpadu di Tapos, Depok.",
+  path: "/profil/manajemen",
+});
 
 const LEADERS = [
   {

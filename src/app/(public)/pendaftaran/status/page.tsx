@@ -81,7 +81,7 @@ export default function CekStatusPage() {
           label: "Formulir Diajukan",
           color: "border-blue-500/40 text-blue-600 bg-blue-500/5",
           icon: Clock,
-          desc: "Formulir telah diterima sistem dan menunggu giliran verifikasi oleh panitia PPDB.",
+          desc: "Formulir telah diterima sistem dan menunggu giliran verifikasi oleh panitia SPMB.",
         };
     }
   };
@@ -92,15 +92,15 @@ export default function CekStatusPage() {
         <Button asChild variant="ghost" size="sm" className="text-xs -ml-2 text-muted-foreground hover:text-foreground">
           <Link href="/pendaftaran" className="flex items-center gap-1.5">
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Kembali ke Informasi PPDB</span>
+            <span>Kembali ke Informasi SPMB</span>
           </Link>
         </Button>
       </div>
 
       <PageHeader
         title="Cek Status Pendaftaran Mandiri"
-        badge="Pelacak PPDB"
-        description="Masukkan Nomor Registrasi (PPDB-YYYY-XXXX) dan Nomor WhatsApp Orang Tua yang didaftarkan untuk memeriksa status verifikasi secara aman."
+        badge="Pelacak SPMB"
+        description="Masukkan Nomor Registrasi (SPMB-YYYY-XXXX) dan Nomor WhatsApp Orang Tua yang didaftarkan untuk memeriksa status verifikasi secara aman."
       />
 
       {/* Formulir Pencarian */}
@@ -108,14 +108,14 @@ export default function CekStatusPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground">
-              Nomor Registrasi PPDB *
+              Nomor Registrasi SPMB *
             </label>
             <input
               type="text"
               required
               value={regNumber}
               onChange={(e) => setRegNumber(e.target.value)}
-              placeholder="Contoh: PPDB-2026-1042"
+              placeholder="Contoh: SPMB-2026-1042"
               className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs font-mono uppercase shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>

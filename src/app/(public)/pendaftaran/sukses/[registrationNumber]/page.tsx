@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 
 export default function PendaftaranSuksesPage() {
   const params = useParams();
-  const regNumber = (params?.registrationNumber as string) || "PPDB-2026-0000";
+  const regNumber = (params?.registrationNumber as string) || "SPMB-2026-0000";
 
   const handlePrint = () => {
     if (typeof window !== "undefined") {
@@ -30,7 +30,7 @@ export default function PendaftaranSuksesPage() {
         <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
           <Link href="/pendaftaran" className="flex items-center gap-1.5">
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Kembali ke Halaman PPDB</span>
+            <span>Kembali ke Halaman SPMB</span>
           </Link>
         </Button>
 
@@ -68,10 +68,10 @@ export default function PendaftaranSuksesPage() {
           </div>
           <div className="hidden sm:block text-right">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-              Tanda Terima PPDB
+              Tanda Terima SPMB
             </div>
-            <div className="text-xs font-bold text-emerald-600 font-mono mt-0.5">
-              TERVERIFIKASI
+            <div className="text-xs font-bold text-amber-600 font-mono mt-0.5">
+              MENUNGGU VERIFIKASI
             </div>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function PendaftaranSuksesPage() {
               <strong className="text-foreground">Cetak Lembar Tanda Terima:</strong> Cetak bukti tanda terima ini atau simpan sebagai dokumen PDF untuk ditunjukkan saat verifikasi fisik.
             </li>
             <li>
-              <strong className="text-foreground">Konfirmasi via WhatsApp:</strong> Panitia PPDB akan menghubungi nomor WhatsApp terdaftar untuk mengonfirmasi jadwal observasi talaqqi dan wawancara pemetaan kesiapan belajar.
+              <strong className="text-foreground">Konfirmasi via WhatsApp:</strong> Panitia SPMB akan menghubungi nomor WhatsApp terdaftar untuk mengonfirmasi jadwal observasi talaqqi dan wawancara pemetaan kesiapan belajar.
             </li>
             <li>
               <strong className="text-foreground">Kelengkapan Berkas Fisik:</strong> Siapkan fotokopi Akta Kelahiran (2 lembar), fotokopi Kartu Keluarga (2 lembar), dan pas foto berwarna calon murid ukuran 3x4 (3 lembar) saat hadir ke sekolah.
@@ -127,7 +127,7 @@ export default function PendaftaranSuksesPage() {
             <span>Jadwal Observasi & Wawancara: Menunggu Konfirmasi Panitia</span>
           </div>
           <div className="text-muted-foreground font-mono">
-            Bantuan: <span className="text-primary font-semibold">0812-3456-7890 (Panitia PPDB)</span>
+            Bantuan: <span className="text-primary font-semibold">0812-3456-7890 (Panitia SPMB)</span>
           </div>
         </div>
 
@@ -140,10 +140,10 @@ export default function PendaftaranSuksesPage() {
           </div>
 
           <div>
-            <p className="text-muted-foreground">Depok, Panitia PPDB SDIT Fajar</p>
+            <p className="text-muted-foreground">Depok, Panitia SPMB SDIT Fajar</p>
             <div className="h-14 flex items-center justify-center">
-              <span className="font-mono text-[10px] text-emerald-600 border border-emerald-500/30 px-2 py-0.5 rounded bg-emerald-500/5">
-                TERVERIFIKASI RESMI
+              <span className="font-mono text-[10px] text-muted-foreground border border-border/80 px-2 py-0.5 rounded">
+                CEK KEABSAHAN VIA MENU CEK STATUS
               </span>
             </div>
             <p className="font-semibold text-foreground underline">Panitia Penerimaan Murid Baru</p>

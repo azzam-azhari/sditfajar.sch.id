@@ -29,7 +29,7 @@ export default function NotFound() {
           </Link>
         </Button>
         <Button asChild variant="outline" size="sm" className="text-xs">
-          <Link href="/pendaftaran">Informasi PPDB</Link>
+          <Link href="/pendaftaran">Informasi SPMB</Link>
         </Button>
       </div>
     </div>

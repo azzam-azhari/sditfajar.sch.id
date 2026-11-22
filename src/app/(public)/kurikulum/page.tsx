@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo/site";
 ﻿import * as React from "react";
 import Link from "next/link";
 import { BookOpen, Award, FileText, ArrowRight } from "lucide-react";
@@ -6,11 +7,12 @@ import { PageHeader } from "@/components/common/page-header";
 import { ZebraDataTable, ZebraColumn } from "@/components/common/zebra-data-table";
 import { StatusBadge } from "@/components/common/status-badge";
 
-export const metadata = {
-  title: "Kurikulum & Program Tahfidz — SDIT Fajar",
+export const metadata = pageMeta({
+  title: "Kurikulum Merdeka & Program Tahfidz Al-Qur'an",
   description:
-    "Struktur kurikulum terpadu nasional, target hafalan tahfidz Juz 30-28, dan metode pembelajaran SDIT Fajar.",
-};
+    "Kurikulum Merdeka terpadu dan program tahfidz SDIT Fajar Depok: target hafalan min. 3 juz, talaqqi setiap pagi dengan rasio 1:12, serta pembiasaan adab Islami.",
+  path: "/kurikulum",
+});
 
 interface TahfidzTargetItem {
   tingkat: string;

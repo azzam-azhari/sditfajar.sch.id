@@ -1,14 +1,16 @@
+import { pageMeta } from "@/lib/seo/site";
 ﻿import * as React from "react";
 import Link from "next/link";
 import { CheckCircle2, Target, Compass, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/page-header";
 
-export const metadata = {
-  title: "Profil & Visi Misi — SDIT Fajar",
+export const metadata = pageMeta({
+  title: "Profil, Visi & Misi SD Islam Terpadu di Depok",
   description:
-    "Profil lengkap, visi, misi, dan falsafah pendidikan Islam terpadu SDIT Fajar.",
-};
+    "Profil lengkap, visi, misi, dan falsafah pendidikan SDIT Fajar, Sekolah Dasar Islam Terpadu dan sekolah tahfidz di Jatijajar, Tapos, Kota Depok.",
+  path: "/profil",
+});
 
 export default function ProfilPage() {
   return (

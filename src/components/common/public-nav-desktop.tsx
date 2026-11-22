@@ -29,7 +29,7 @@ export function PublicNavDesktop({
       if (href === "/") {
         return pathname === "/";
       }
-      return pathname.startsWith(href);
+      return pathname === href;
     },
     [pathname]
   );
@@ -62,38 +62,52 @@ export function PublicNavDesktop({
               <DropdownMenuContent
                 align="start"
                 sideOffset={8}
-                className="w-64 p-1 rounded-lg border border-border/80 bg-popover shadow-md"
+                className="w-80 p-1.5 rounded-xl border border-border/80 bg-popover shadow-lg"
               >
                 {item.children.map((child) => {
                   const isChildActive = isLinkActive(child.href);
+                  const Icon = child.icon;
                   return (
                     <DropdownMenuItem
                       key={child.href}
                       asChild
                       className={cn(
-                        "cursor-pointer focus:bg-accent focus:text-accent-foreground p-0",
-                        isChildActive && "bg-muted/70"
+                        "group/sub cursor-pointer items-start p-0 focus:bg-muted/70",
+                        isChildActive && "bg-primary/5"
                       )}
                     >
                       <Link
                         href={child.href}
-                        className="flex flex-col gap-0.5 rounded-md p-2 text-left text-xs transition-colors w-full"
+                        aria-current={isChildActive ? "page" : undefined}
+                        className="flex w-full items-start gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors"
                       >
-                        <span
-                          className={cn(
-                            "font-medium leading-none",
-                            isChildActive
-                              ? "text-primary font-semibold"
-                              : "text-foreground"
-                          )}
-                        >
-                          {child.label}
-                        </span>
-                        {child.desc && (
-                          <span className="text-[11px] text-muted-foreground leading-snug mt-0.5">
-                            {child.desc}
+                        {Icon && (
+                          <span
+                            className={cn(
+                              "flex size-9 shrink-0 items-center justify-center rounded-lg border transition-colors",
+                              isChildActive
+                                ? "border-primary/30 bg-primary/10 text-primary"
+                                : "border-border/70 bg-muted/50 text-muted-foreground group-focus/sub:text-primary group-hover/sub:text-primary"
+                            )}
+                          >
+                            <Icon className="size-4" aria-hidden="true" />
                           </span>
                         )}
+                        <span className="flex min-w-0 flex-col gap-1">
+                          <span
+                            className={cn(
+                              "text-sm leading-tight",
+                              isChildActive ? "font-semibold text-primary" : "font-medium text-foreground"
+                            )}
+                          >
+                            {child.label}
+                          </span>
+                          {child.desc && (
+                            <span className="text-xs leading-snug text-muted-foreground">
+                              {child.desc}
+                            </span>
+                          )}
+                        </span>
                       </Link>
                     </DropdownMenuItem>
                   );

@@ -1,21 +1,34 @@
+import { pageMeta } from "@/lib/seo/site";
 import * as React from "react";
 import Link from "next/link";
-import { Calendar, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/page-header";
 import { StatusBadge } from "@/components/common/status-badge";
 import { getPublicNewsList } from "@/lib/data/news";
 
-export const metadata = {
-  title: "Berita & Pengumuman — SDIT Fajar",
+export const metadata = pageMeta({
+  title: "Berita & Pengumuman Sekolah",
   description:
-    "Kabar terkini seputar kegiatan murid, prestasi akademik, agenda sekolah, dan pengumuman resmi SDIT Fajar.",
-};
+    "Kabar terkini SDIT Fajar Depok: kegiatan murid, prestasi tahfidz dan akademik, agenda sekolah, serta pengumuman resmi SPMB.",
+  path: "/berita",
+});
 
-export default async function BeritaPage() {
+export const instant = false;
+
+/** Jumlah kartu arsip per halaman (berita utama hanya tampil di halaman 1). */
+const PAGE_SIZE = 9;
+
+export default async function BeritaPage(props: { searchParams: Promise<{ halaman?: string }> }) {
+  const { halaman } = await props.searchParams;
   const displayArticles = await getPublicNewsList();
-  const featured = displayArticles[0];
-  const regular = displayArticles.slice(1);
+  const archive = displayArticles.slice(1);
+  const totalPages = Math.max(1, Math.ceil(archive.length / PAGE_SIZE));
+  const requested = Number.parseInt(halaman ?? "1", 10);
+  const currentPage = Number.isFinite(requested) ? Math.min(Math.max(requested, 1), totalPages) : 1;
+  const featured = currentPage === 1 ? displayArticles[0] : undefined;
+  const regular = archive.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageHref = (page: number) => (page <= 1 ? "/berita" : `/berita?halaman=${page}`);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-12">
@@ -109,6 +122,46 @@ export default async function BeritaPage() {
             </article>
           ))}
         </div>
+
+        {totalPages > 1 && (
+          <nav aria-label="Navigasi halaman berita" className="flex items-center justify-between gap-3 border-t border-border/80 pt-5">
+            {currentPage > 1 ? (
+              <Button asChild variant="outline" size="sm" className="text-xs">
+                <Link href={pageHref(currentPage - 1)} rel="prev">
+                  <ChevronLeft className="h-3.5 w-3.5" /> Sebelumnya
+                </Link>
+              </Button>
+            ) : (
+              <span />
+            )}
+            <ol className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <li key={page}>
+                  <Link
+                    href={pageHref(page)}
+                    aria-current={page === currentPage ? "page" : undefined}
+                    className={`flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-xs font-mono transition-colors ${
+                      page === currentPage
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border/80 text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                    }`}
+                  >
+                    {page}
+                  </Link>
+                </li>
+              ))}
+            </ol>
+            {currentPage < totalPages ? (
+              <Button asChild variant="outline" size="sm" className="text-xs">
+                <Link href={pageHref(currentPage + 1)} rel="next">
+                  Berikutnya <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            ) : (
+              <span />
+            )}
+          </nav>
+        )}
       </section>
     </div>
   );

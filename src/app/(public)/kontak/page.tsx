@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo/site";
 import * as React from "react";
 import {
   MapPin,
@@ -5,24 +6,19 @@ import {
   Mail,
   Clock,
   MessageCircle,
-  Send,
   Navigation,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { PageHeader } from "@/components/common/page-header";
+import { ContactForm } from "./_components/contact-form";
+import { whatsappLink } from "@/constants/contact";
 
-export const metadata = {
-  title: "Kontak & Lokasi — SDIT Fajar",
+export const metadata = pageMeta({
+  title: "Alamat & Lokasi Sekolah di Jatijajar, Tapos",
   description:
-    "Hubungi panitia, kantor tata usaha, dan kunjungi lokasi kampus SDIT Fajar di Cilodong, Kota Depok.",
-};
+    "Alamat SDIT Fajar: Jl. Jati III No.04 RT 07/07, Jatijajar, Kec. Tapos, Kota Depok, Jawa Barat 16466. Hubungi panitia SPMB, tata usaha, dan lihat peta lokasi.",
+  path: "/kontak",
+});
 
 export default function KontakPage() {
   return (
@@ -47,85 +43,7 @@ export default function KontakPage() {
             </p>
           </div>
 
-          <form className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
-                  Nama Lengkap *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Contoh: Bpk. Rahmat Fauzi"
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
-                  Nomor WhatsApp Aktif *
-                </label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="Contoh: 081234567890"
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs font-mono shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
-                  Alamat Email (Opsional)
-                </label>
-                <input
-                  type="email"
-                  placeholder="nama@email.com"
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
-                  Kategori Kepentingan
-                </label>
-                <Select defaultValue="ppdb">
-                  <SelectTrigger className="w-full h-9 text-xs">
-                    <SelectValue placeholder="Pilih Kategori" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ppdb">Informasi Pendaftaran (PPDB)</SelectItem>
-                    <SelectItem value="akademik">Konsultasi Kurikulum &amp; Tahfidz</SelectItem>
-                    <SelectItem value="kunjungan">Rencana Kunjungan Sekolah</SelectItem>
-                    <SelectItem value="umum">Informasi Umum Lainnya</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">
-                Pesan / Pertanyaan Lengkap *
-              </label>
-              <textarea
-                rows={4}
-                required
-                placeholder="Tuliskan pertanyaan atau hal yang ingin Anda konsultasikan kepada kami..."
-                className="w-full rounded-md border border-input bg-background p-3 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
-              />
-            </div>
-
-            <div className="pt-2">
-              <Button
-                type="button"
-                className="w-full sm:w-auto text-xs font-semibold h-10 px-6 bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2"
-              >
-                <Send className="h-3.5 w-3.5" />
-                <span>Kirim Pesan Sekarang</span>
-              </Button>
-            </div>
-          </form>
+          <ContactForm />
         </div>
 
         {/* Kolom 3: Informasi Kontak & Layanan Cepat */}
@@ -149,7 +67,7 @@ export default function KontakPage() {
               </li>
               <li className="flex items-center gap-2.5">
                 <MessageCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span className="font-mono text-foreground font-semibold">0812-3456-7890 (WA PPDB)</span>
+                <span className="font-mono text-foreground font-semibold">0812-3456-7890 (WA SPMB)</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 text-primary shrink-0" />
@@ -168,16 +86,16 @@ export default function KontakPage() {
               <span>Respon Cepat WhatsApp</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Membutuhkan informasi cepat mengenai kuota PPDB atau jadwal tes pemetaan murid? Chat langsung dengan panitia.
+              Membutuhkan informasi cepat mengenai kuota SPMB atau jadwal tes pemetaan murid? Chat langsung dengan panitia.
             </p>
             <a
-              href="https://wa.me/6287737860657?text=Assalamu'alaikum,%20saya%20ingin%20bertanya%20informasi%20PPDB%20SDIT%20Fajar"
+              href={whatsappLink("Assalamu'alaikum, saya ingin bertanya informasi PPDB SDIT Fajar")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 transition-colors"
             >
               <MessageCircle className="h-4 w-4" />
-              <span>Chat Panitia PPDB Sekarang</span>
+              <span>Chat Panitia SPMB Sekarang</span>
             </a>
           </div>
 

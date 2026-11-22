@@ -65,7 +65,7 @@ function PublicNavbarContent() {
         {/* Desktop Navigation Links (Client Component) */}
         <PublicNavDesktop />
 
-        {/* Right Actions: Theme Toggle, Auth / PPDB CTA & Mobile Trigger */}
+        {/* Right Actions: Theme Toggle, Auth / SPMB CTA & Mobile Trigger */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
 
@@ -89,7 +89,7 @@ function PublicNavbarContent() {
               className="text-xs font-semibold h-9 px-3.5 xl:px-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs"
             >
               <Link href="/pendaftaran" className="flex items-center gap-1.5">
-                <span>Daftar PPDB</span>
+                <span>Daftar SPMB</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>

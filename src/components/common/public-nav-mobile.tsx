@@ -58,7 +58,7 @@ export function PublicNavMobile({
       if (href === "/") {
         return pathname === "/";
       }
-      return pathname.startsWith(href);
+      return pathname === href;
     },
     [pathname]
   );
@@ -241,7 +241,7 @@ export function PublicNavMobile({
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-1.5"
               >
-                <span>Daftar PPDB Online</span>
+                <span>Daftar SPMB Online</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
