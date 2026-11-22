@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/sidebar"
 import { EllipsisVerticalIcon, CircleUserRoundIcon, KeyRoundIcon, LogOutIcon } from "lucide-react"
 import { logoutAction } from "@/actions/auth.actions"
+import { ChangePasswordDialog } from "@/components/change-password-dialog"
 
 export function NavUser({
   user,
@@ -37,6 +38,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const [isPending, startTransition] = React.useTransition()
+  const [passwordOpen, setPasswordOpen] = React.useState(false)
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -101,11 +103,9 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem asChild>
-                <Link href="/ganti-password" className="cursor-pointer">
-                  <KeyRoundIcon className="size-4" />
-                  Ganti Password
-                </Link>
+              <DropdownMenuItem onSelect={() => setPasswordOpen(true)} className="cursor-pointer">
+                <KeyRoundIcon className="size-4" />
+                Ganti Password
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/" target="_blank" className="cursor-pointer">
@@ -126,6 +126,7 @@ export function NavUser({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
       </SidebarMenuItem>
     </SidebarMenu>
   )

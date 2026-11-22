@@ -70,7 +70,7 @@ const defaultCards: MetricCardItem[] = [
     icon: "users",
   },
   {
-    description: "Pendaftaran PPDB",
+    description: "Pendaftaran SPMB",
     title: "68 / 100",
     badgeText: "Sisa 32 Kursi",
     footerTitle: "Gelombang 1 & 2",
