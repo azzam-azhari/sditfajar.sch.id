@@ -16,7 +16,7 @@ export default async function MarketplaceAdminPage() {
     supabase
       .from('marketplace_orders')
       .select(
-        'id, order_number, status, total_amount, created_at, fulfilled_at, parents(profiles(name)), students(nis, profiles(name)), marketplace_order_items(quantity, unit_price, marketplace_products(title, product_type)), payment_invoices(status, due_date)'
+        'id, order_number, status, total_amount, created_at, fulfilled_at, parents(profiles(name)), students(nis, profiles(name)), marketplace_order_items(quantity, unit_price, marketplace_products(title, product_type)), payment_invoices(status, due_date, invoice_number, payment_proofs(status))'
       )
       .order('created_at', { ascending: false }),
   ]);

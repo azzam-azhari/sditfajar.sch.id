@@ -110,7 +110,7 @@ export default function KurikulumPage() {
         description="Mengintegrasikan keunggulan Kurikulum Nasional Merdeka dengan pendalaman ilmu-ilmu syar'i dan standarisasi hafalan Al-Qur'an 3 Juz."
       >
         <Button asChild size="sm" className="text-xs bg-primary text-primary-foreground">
-          <Link href="/pendaftaran">Daftar Murid Baru</Link>
+          <Link href="/spmb">Daftar Murid Baru</Link>
         </Button>
       </PageHeader>
 

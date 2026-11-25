@@ -13,7 +13,7 @@ import {
 import { whatsappLink } from "@/constants/contact";
 
 const KATEGORI = {
-  ppdb: "Informasi Pendaftaran (SPMB)",
+  spmb: "Informasi Pendaftaran (SPMB)",
   akademik: "Konsultasi Kurikulum & Tahfidz",
   kunjungan: "Rencana Kunjungan Sekolah",
   umum: "Informasi Umum Lainnya",
@@ -29,7 +29,7 @@ const inputClass =
  * layanan sekolah, sehingga pengunjung langsung terhubung dengan sekretariat.
  */
 export function ContactForm() {
-  const [kategori, setKategori] = React.useState<Kategori>("ppdb");
+  const [kategori, setKategori] = React.useState<Kategori>("spmb");
   const [sent, setSent] = React.useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

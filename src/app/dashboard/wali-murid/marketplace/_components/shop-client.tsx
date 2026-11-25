@@ -1,9 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Download, Lock, Minus, Plus, ShoppingCart, XCircle } from 'lucide-react';
+import { CreditCard, Download, Lock, Minus, Plus, ShoppingCart, XCircle } from 'lucide-react';
 import { ZebraDataTable } from '@/components/common/zebra-data-table';
 import { StatusBadge } from '@/components/common/status-badge';
 import { Button } from '@/components/ui/button';
@@ -193,9 +194,11 @@ export function ShopClient({
           data={orders}
           keyExtractor={(o) => o.id}
           emptyText="Belum ada pesanan."
+          mobileCards
           columns={[
             {
               header: 'Pesanan',
+              cardSlot: 'title',
               cell: (o) => (
                 <div className="space-y-0.5">
                   <div className="font-mono text-xs font-semibold">{o.order_number ?? o.id.slice(0, 8)}</div>
@@ -205,6 +208,7 @@ export function ShopClient({
             },
             {
               header: 'Item',
+              cardSlot: 'full',
               cell: (o) => {
                 const paid = o.payment_invoices.some((i) => i.status === 'paid');
                 return (
@@ -249,14 +253,27 @@ export function ShopClient({
             {
               header: 'Aksi',
               align: 'right',
-              cell: (o) =>
-                o.status === 'pending_payment' ? (
-                  <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" disabled={isPending} onClick={() => run(() => cancelOrderAction(o.id))}>
-                    <XCircle className="size-3.5" /> Batalkan
-                  </Button>
-                ) : (
-                  <span className="text-xs text-muted-foreground">—</span>
-                ),
+              cardSlot: 'footer',
+              cell: (o) => {
+                const invStatus = o.payment_invoices[0]?.status;
+                const canPay = o.status === 'pending_payment' && (invStatus === 'unpaid' || invStatus === 'failed');
+                const processing = o.status === 'pending_payment' && invStatus === 'pending';
+                if (o.status !== 'pending_payment') return <span className="text-xs text-muted-foreground">—</span>;
+                return (
+                  <div className="flex justify-end gap-1">
+                    {(canPay || processing) && (
+                      <Button asChild size="sm" variant={canPay ? 'default' : 'outline'} className="h-7 text-xs">
+                        <Link href="/dashboard/wali-murid/tagihan">
+                          <CreditCard className="size-3.5" /> {canPay ? 'Bayar' : 'Lihat tagihan'}
+                        </Link>
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" disabled={isPending} onClick={() => run(() => cancelOrderAction(o.id))}>
+                      <XCircle className="size-3.5" /> Batalkan
+                    </Button>
+                  </div>
+                );
+              },
             },
           ]}
         />

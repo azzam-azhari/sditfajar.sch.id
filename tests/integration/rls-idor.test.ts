@@ -51,7 +51,7 @@ describe('Tamu (anon)', () => {
     }
   );
 
-  it('tidak dapat mengunduh dokumen PPDB, materi, atau bukti transfer', async () => {
+  it('tidak dapat mengunduh dokumen SPMB, materi, atau bukti transfer', async () => {
     if (fx.regDocPath) expect((await anon.storage.from('registration-files').download(fx.regDocPath)).error).not.toBeNull();
     if (fx.material) expect((await anon.storage.from('lms-files').download(fx.material.file_path)).error).not.toBeNull();
     if (fx.proof) expect((await anon.storage.from('payment-files').download(fx.proof.file_path)).error).not.toBeNull();

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { PackageCheck, Pencil, Plus, Trash2, XCircle } from 'lucide-react';
@@ -44,7 +45,12 @@ export interface OrderRow {
   parents: { profiles: { name: string } | null } | null;
   students: { nis: string; profiles: { name: string } | null } | null;
   marketplace_order_items: { quantity: number; unit_price: number; marketplace_products: { title: string; product_type: string } | null }[];
-  payment_invoices: { status: string; due_date: string | null }[];
+  payment_invoices: {
+    status: string;
+    due_date: string | null;
+    invoice_number: string | null;
+    payment_proofs: { status: string }[] | null;
+  }[];
 }
 
 interface FormState {
@@ -170,7 +176,11 @@ export function MarketplaceAdmin({ products, orders }: { products: ProductRow[];
         />
       </TabsContent>
 
-      <TabsContent value="pesanan">
+      <TabsContent value="pesanan" className="space-y-3">
+        <p className="text-xs text-muted-foreground">
+          Barang diserahkan setelah tagihan lunas. Pembayaran diverifikasi admin atau bendahara di menu Tagihan
+          (setujui bukti transfer wali atau catat pembayaran tunai).
+        </p>
         <ZebraDataTable<OrderRow>
           data={orders}
           keyExtractor={(o) => o.id}
@@ -223,11 +233,30 @@ export function MarketplaceAdmin({ products, orders }: { products: ProductRow[];
                       <XCircle className="size-3.5" /> Batalkan
                     </Button>
                   )}
-                  {o.status !== 'fulfilled' && o.status !== 'cancelled' && (
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => run(() => markOrderFulfilledAction(o.id))} disabled={isPending}>
-                      <PackageCheck className="size-3.5" /> Tandai diambil
-                    </Button>
-                  )}
+                  {o.status !== 'fulfilled' && o.status !== 'cancelled' && (() => {
+                    const inv = o.payment_invoices[0];
+                    if (inv?.status === 'paid') {
+                      return (
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => run(() => markOrderFulfilledAction(o.id))} disabled={isPending}>
+                          <PackageCheck className="size-3.5" /> Tandai diambil
+                        </Button>
+                      );
+                    }
+                    const proofPending = (inv?.payment_proofs ?? []).some((p) => p.status === 'pending');
+                    const href = inv?.invoice_number
+                      ? `/dashboard/admin/tagihan?q=${encodeURIComponent(inv.invoice_number)}`
+                      : '/dashboard/admin/tagihan';
+                    return (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] text-muted-foreground">
+                          {proofPending ? 'Bukti transfer menunggu verifikasi' : 'Menunggu pembayaran'}
+                        </span>
+                        <Button asChild size="sm" variant={proofPending ? 'default' : 'outline'} className="h-7 text-xs">
+                          <Link href={href}>{proofPending ? 'Verifikasi' : 'Lihat tagihan'}</Link>
+                        </Button>
+                      </div>
+                    );
+                  })()}
                 </div>
               ),
             },

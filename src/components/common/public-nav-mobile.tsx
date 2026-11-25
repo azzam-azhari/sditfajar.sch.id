@@ -82,33 +82,32 @@ export function PublicNavMobile({
           className="flex h-full w-[310px] sm:w-[360px] flex-col p-0 bg-background text-foreground shadow-xl border-l border-border/80"
         >
           {/* Header Identitas Sekolah */}
-          <SheetHeader className="p-4 sm:p-5 border-b border-border/70 text-left">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted/40">
-                  <Image
-                    src="/logo.png"
-                    alt="Logo SDIT Fajar"
-                    width={40}
-                    height={40}
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <SheetTitle className="text-base font-bold tracking-tight text-foreground leading-none">
-                    SDIT FAJAR
-                  </SheetTitle>
-                  <span className="text-[10px] font-medium text-muted-foreground tracking-wider uppercase mt-1">
-                    Sekolah Islam Terpadu
-                  </span>
-                </div>
+          {/* pr-12/sm:pr-14 menyisakan ruang untuk tombol close (absolute top-3 right-3) */}
+          <SheetHeader className="p-4 pr-12 sm:p-5 sm:pr-14 border-b border-border/70 text-left">
+            <div className="flex items-center gap-3">
+              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted/40">
+                <Image
+                  src="/logo.png"
+                  alt="Logo SDIT Fajar"
+                  width={48}
+                  height={48}
+                  className="h-full w-full object-contain"
+                />
               </div>
-              <Badge
-                variant="outline"
-                className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5"
-              >
-                Akreditasi A
-              </Badge>
+              <div className="flex min-w-0 flex-col items-start">
+                <SheetTitle className="whitespace-nowrap text-base font-bold tracking-tight text-foreground leading-none">
+                  SDIT FAJAR
+                </SheetTitle>
+                <span className="whitespace-nowrap text-[10px] font-medium text-muted-foreground tracking-wider uppercase mt-1">
+                  Sekolah Islam Terpadu
+                </span>
+                <Badge
+                  variant="outline"
+                  className="mt-1.5 whitespace-nowrap text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5"
+                >
+                  Akreditasi A
+                </Badge>
+              </div>
             </div>
           </SheetHeader>
 
@@ -237,7 +236,7 @@ export function PublicNavMobile({
               className="w-full text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 justify-center h-10 shadow-xs"
             >
               <Link
-                href="/pendaftaran"
+                href="/spmb"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-1.5"
               >

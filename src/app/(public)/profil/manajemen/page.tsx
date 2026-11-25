@@ -1,7 +1,8 @@
 import { pageMeta } from "@/lib/seo/site";
 ﻿import * as React from "react";
 import Link from "next/link";
-import { GraduationCap, Award, BookOpen } from "lucide-react";
+import Image from "next/image";
+import { Award, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/page-header";
 
@@ -12,29 +13,36 @@ export const metadata = pageMeta({
   path: "/profil/manajemen",
 });
 
+/** Foto sementara: semua kartu memakai foto kepala sekolah sampai foto masing-masing tersedia. */
+const DEFAULT_PHOTO = "/foto-guru/kepala%20sekolah.jpg";
+
 const LEADERS = [
   {
     name: "Ummi Nining Juningsih S.Pd.",
     role: "Kepala Sekolah",
     edu: "S1 Universitas Al-Azhar Kairo (Syariah) • S2 Manajemen Pendidikan Islam",
+    photo: DEFAULT_PHOTO,
     desc: "Berpengalaman lebih dari 15 tahun dalam manajemen pendidikan Islam terpadu dan pembinaan generasi muda.",
   },
   {
     name: "Ustadzah Fatimah Azzahra, S.Pd., M.Si.",
     role: "Wakil Kepala Sekolah Bidang Kurikulum",
     edu: "S1 Pendidikan Guru SD (UPI) • S2 Evaluasi Pendidikan (UNJ)",
+    photo: DEFAULT_PHOTO,
     desc: "Mendesain integrasi Kurikulum Merdeka berwawasan tauhid dan modul ajar terpadu tingkat sekolah dasar.",
   },
   {
     name: "Ustadz Ahmad Fauzan, S.Sos.I.",
     role: "Wakil Kepala Sekolah Bidang Kesiswaan",
     edu: "S1 Komunikasi Penyiaran Islam (UIN Syarif Hidayatullah Jakarta)",
+    photo: DEFAULT_PHOTO,
     desc: "Memimpin pembinaan karakter murid, kepanduan Pramuka SIT, dan kegiatan ekstrakurikuler sekolah.",
   },
   {
     name: "Ustadz Hafizh Al-Bantani, Al-Hafizh",
     role: "Koordinator Tahfidz Al-Qur'an",
     edu: "Kulliyatul Qur'an • Sanad Hafalan Qira'at 'Ashim riwayat Hafsh",
+    photo: DEFAULT_PHOTO,
     desc: "Membimbing dan mengawal standarisasi bacaan tahsin serta target hafalan 3 Juz murid SDIT Fajar.",
   },
 ];
@@ -80,9 +88,19 @@ export default function ManajemenPage() {
           {LEADERS.map((leader, idx) => (
             <div
               key={idx}
-              className="rounded-xl border border-border/80 bg-card p-6 space-y-3 transition-all hover:border-foreground/20 hover:shadow-xs"
+              className="flex gap-4 sm:gap-5 rounded-xl border border-border/80 bg-card p-5 sm:p-6 transition-all hover:border-foreground/20 hover:shadow-xs"
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="relative w-20 sm:w-28 aspect-[3/4] shrink-0 overflow-hidden rounded-lg border border-border/60 bg-muted">
+                <Image
+                  src={leader.photo}
+                  alt={`Foto ${leader.name}`}
+                  fill
+                  sizes="(min-width: 640px) 112px, 80px"
+                  className="object-cover object-top"
+                />
+              </div>
+
+              <div className="min-w-0 flex-1 space-y-3">
                 <div>
                   <span className="text-[11px] font-semibold text-primary uppercase tracking-wider bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
                     {leader.role}
@@ -91,18 +109,15 @@ export default function ManajemenPage() {
                     {leader.name}
                   </h3>
                 </div>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground">
-                  <GraduationCap className="h-5 w-5" />
+
+                <div className="text-xs text-muted-foreground font-mono bg-muted/30 p-2 rounded border border-border/50">
+                  {leader.edu}
                 </div>
-              </div>
 
-              <div className="text-xs text-muted-foreground font-mono bg-muted/30 p-2 rounded border border-border/50">
-                {leader.edu}
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {leader.desc}
+                </p>
               </div>
-
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {leader.desc}
-              </p>
             </div>
           ))}
         </div>

@@ -31,7 +31,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   "audit-logs": "Audit Log",
   import: "Import CSV",
   pembayaran: "Pembayaran",
-  pendaftaran: "Verifikasi SPMB",
+  spmb: "Verifikasi SPMB",
   "tahun-ajaran": "Tahun Ajaran & Periode",
   rombel: "Rombel & Kelas",
   mapel: "Mata Pelajaran",

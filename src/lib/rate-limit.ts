@@ -5,8 +5,8 @@ import type { ActionError } from '@/types/action.types';
 
 /** Batas frekuensi per aksi. Ubah di sini agar seluruh aplikasi konsisten. */
 export const RATE_LIMITS = {
-  ppdbSubmit: { max: 5, windowSeconds: 60 * 60 }, // 5 pendaftaran / jam / IP
-  ppdbStatus: { max: 20, windowSeconds: 15 * 60 }, // 20 cek status / 15 menit / IP
+  spmbSubmit: { max: 5, windowSeconds: 60 * 60 }, // 5 pendaftaran / jam / IP
+  spmbStatus: { max: 20, windowSeconds: 15 * 60 }, // 20 cek status / 15 menit / IP
   paymentProof: { max: 10, windowSeconds: 60 * 60 }, // 10 unggahan bukti / jam / wali
   assignmentSubmit: { max: 30, windowSeconds: 60 * 60 }, // 30 pengumpulan / jam / murid
 } as const;

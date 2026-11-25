@@ -39,14 +39,14 @@ async function runNegativeRLSTests() {
 
     const passed = (!data || data.length === 0) && (!error || error.code === '42501' || error.message.includes('permission'));
     results.push({
-      title: 'Uji 1: Tamu (Guest) dilarang membaca data pendaftaran PPDB (Zero PII Leakage)',
+      title: 'Uji 1: Tamu (Guest) dilarang membaca data pendaftaran SPMB (Zero PII Leakage)',
       expected: 'Data kosong atau ditolak oleh RLS',
       actual: data && data.length > 0 ? `BOCOR (${data.length} baris terbaca)` : 'Aman (0 baris dikembalikan)',
       passed,
     });
   } catch (err: unknown) {
     results.push({
-      title: 'Uji 1: Tamu (Guest) dilarang membaca data pendaftaran PPDB',
+      title: 'Uji 1: Tamu (Guest) dilarang membaca data pendaftaran SPMB',
       expected: 'Ditolak RLS',
       actual: `Error ditolak: ${String(err)}`,
       passed: true,

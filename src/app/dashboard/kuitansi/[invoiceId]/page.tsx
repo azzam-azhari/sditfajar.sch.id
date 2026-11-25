@@ -6,7 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { rupiah } from '@/components/lms/marketplace-labels';
 import { INVOICE_TYPE_LABELS } from '@/validations/payment.schema';
 import { formatDateTime } from '@/lib/date';
-import { OpenInNewTabButton, PrintButton } from './print-button';
+import { PrintButton } from './print-button';
 
 export const instant = false;
 
@@ -20,7 +20,7 @@ type ReceiptRow = {
   payer_bank_name: string | null;
   payer_bank_account_name: string | null;
   school_logo_url: string | null;
-  payment_invoices: { title: string; type: string; billing_month: number | null; billing_year: number | null; students: { nis: string } | null } | null;
+  payment_invoices: { title: string; type: string; marketplace_order_id: string | null; billing_month: number | null; billing_year: number | null; students: { nis: string } | null } | null;
   payment_transactions: { provider: string; order_id: string; raw_payload: { recorded_by?: string; notes?: string | null } | null } | null;
 };
 
@@ -38,7 +38,7 @@ export default async function ReceiptPage(props: { params: Promise<{ invoiceId: 
     supabase
       .from('payment_receipts')
       .select(
-        'id, invoice_number, student_name, class_name, amount, paid_at, payer_bank_name, payer_bank_account_name, school_logo_url, payment_invoices(title, type, billing_month, billing_year, students(nis)), payment_transactions(provider, order_id, raw_payload)'
+        'id, invoice_number, student_name, class_name, amount, paid_at, payer_bank_name, payer_bank_account_name, school_logo_url, payment_invoices(title, type, marketplace_order_id, billing_month, billing_year, students(nis)), payment_transactions(provider, order_id, raw_payload)'
       )
       .eq('invoice_id', invoiceId)
       .order('paid_at', { ascending: false })
@@ -57,6 +57,24 @@ export default async function ReceiptPage(props: { params: Promise<{ invoiceId: 
       ? await createAdminClient().from('profiles').select('name').eq('id', recorderId).maybeSingle()
       : { data: null };
 
+  // Rincian barang untuk tagihan marketplace. Diambil lewat admin client, dibatasi
+  // ke pesanan milik tagihan yang kuitansinya sudah lolos RLS (bendahara tidak punya
+  // akses baca langsung ke marketplace_order_items).
+  type OrderItem = { quantity: number; unit_price: number; marketplace_products: { title: string } | null };
+  const orderId = receipt.payment_invoices?.marketplace_order_id;
+  const { data: itemRows } = orderId
+    ? await createAdminClient()
+        .from('marketplace_order_items')
+        .select('quantity, unit_price, marketplace_products(title)')
+        .eq('order_id', orderId)
+        .order('created_at', { ascending: true })
+    : { data: null };
+  const items = ((itemRows ?? []) as unknown as OrderItem[]).map((i) => ({
+    title: i.marketplace_products?.title ?? 'Produk',
+    quantity: i.quantity,
+    unitPrice: Number(i.unit_price),
+  }));
+
   const method =
     receipt.payment_transactions?.provider === 'cash'
       ? 'Tunai di sekolah'
@@ -66,7 +84,6 @@ export default async function ReceiptPage(props: { params: Promise<{ invoiceId: 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <div className="flex justify-end gap-2 print:hidden">
-        <OpenInNewTabButton />
         <PrintButton />
       </div>
 
@@ -108,13 +125,33 @@ export default async function ReceiptPage(props: { params: Promise<{ invoiceId: 
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="px-3 py-3">
-                {receipt.payment_invoices?.title ?? '-'}
-                <div className="text-[11px] text-muted-foreground">{INVOICE_TYPE_LABELS[receipt.payment_invoices?.type ?? ''] ?? ''}</div>
-              </td>
-              <td className="px-3 py-3 text-right font-mono">{rupiah(Number(receipt.amount))}</td>
-            </tr>
+            {items.length > 0 ? (
+              <>
+                <tr>
+                  <td colSpan={2} className="px-3 pt-3 pb-1">
+                    {receipt.payment_invoices?.title ?? '-'}
+                    <div className="text-[11px] text-muted-foreground">{INVOICE_TYPE_LABELS[receipt.payment_invoices?.type ?? ''] ?? ''}</div>
+                  </td>
+                </tr>
+                {items.map((item, idx) => (
+                  <tr key={idx}>
+                    <td className="px-3 py-1.5">
+                      <span className="font-mono">{item.quantity}×</span> {item.title}
+                      <div className="text-[11px] text-muted-foreground font-mono">@ {rupiah(item.unitPrice)}</div>
+                    </td>
+                    <td className="px-3 py-1.5 text-right font-mono align-top">{rupiah(item.quantity * item.unitPrice)}</td>
+                  </tr>
+                ))}
+              </>
+            ) : (
+              <tr>
+                <td className="px-3 py-3">
+                  {receipt.payment_invoices?.title ?? '-'}
+                  <div className="text-[11px] text-muted-foreground">{INVOICE_TYPE_LABELS[receipt.payment_invoices?.type ?? ''] ?? ''}</div>
+                </td>
+                <td className="px-3 py-3 text-right font-mono">{rupiah(Number(receipt.amount))}</td>
+              </tr>
+            )}
             <tr className="border-t border-border/80 font-semibold">
               <td className="px-3 py-3">Total Dibayar</td>
               <td className="px-3 py-3 text-right font-mono">{rupiah(Number(receipt.amount))}</td>

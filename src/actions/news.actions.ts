@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/supabase/auth-helpers';
 import { ActionResult } from '@/types/action.types';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 import { randomUUID } from 'crypto';
 import { newsPostSchema, NewsPostInput } from '@/validations/news.schema';
 import { deleteStorageFile, uploadStorageFile } from '@/lib/supabase/storage';
@@ -90,7 +90,7 @@ export async function createNewsAction(
     metadata: { title: parsed.data.title, status: parsed.data.status },
   });
 
-  revalidateTag('news', 'max');
+  updateTag('news');
   revalidatePath('/dashboard/admin/berita');
   revalidatePath('/berita');
   return { success: true, data: { id: data.id }, message: 'Artikel berita berhasil disimpan.' };
@@ -158,8 +158,8 @@ export async function updateNewsAction(
     metadata: { title: parsed.data.title, status: parsed.data.status },
   });
 
-  revalidateTag('news', 'max');
-  revalidateTag(`news:${parsed.data.slug}`, 'max');
+  updateTag('news');
+  updateTag(`news:${parsed.data.slug}`);
   revalidatePath('/dashboard/admin/berita');
   revalidatePath('/berita');
   revalidatePath(`/berita/${parsed.data.slug}`);
@@ -184,7 +184,7 @@ export async function deleteNewsAction(id: string): Promise<ActionResult<void>> 
     entity_id: id,
   });
 
-  revalidateTag('news', 'max');
+  updateTag('news');
   revalidatePath('/dashboard/admin/berita');
   revalidatePath('/berita');
   return { success: true, data: undefined, message: 'Artikel berita berhasil dihapus.' };

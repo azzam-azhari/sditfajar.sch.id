@@ -88,7 +88,7 @@ function PublicNavbarContent() {
               size="sm"
               className="text-xs font-semibold h-9 px-3.5 xl:px-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs"
             >
-              <Link href="/pendaftaran" className="flex items-center gap-1.5">
+              <Link href="/spmb" className="flex items-center gap-1.5">
                 <span>Daftar SPMB</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
