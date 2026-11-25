@@ -42,7 +42,7 @@ export const FAQ_UMUM: FaqItem[] = [
 export const FAQ_SPMB: FaqItem[] = [
   {
     q: "Bagaimana cara mendaftar di SDIT Fajar?",
-    a: "Pendaftaran murid baru (SPMB) dilakukan secara online di sditfajar.sch.id/pendaftaran: pilih gelombang pendaftaran yang dibuka, isi formulir data calon murid dan orang tua, lalu simpan nomor pendaftaran yang diberikan.",
+    a: "Pendaftaran murid baru (SPMB) dilakukan secara online di sditfajar.sch.id/spmb: pilih gelombang pendaftaran yang dibuka, isi formulir data calon murid dan orang tua, lalu simpan nomor pendaftaran yang diberikan.",
   },
   {
     q: "Kapan pendaftaran SPMB SDIT Fajar dibuka?",
@@ -58,7 +58,7 @@ export const FAQ_SPMB: FaqItem[] = [
   },
   {
     q: "Bagaimana cara cek status pendaftaran?",
-    a: "Status pendaftaran dapat dicek kapan saja di halaman sditfajar.sch.id/pendaftaran/status menggunakan nomor pendaftaran dan nomor WhatsApp orang tua yang didaftarkan.",
+    a: "Status pendaftaran dapat dicek kapan saja di halaman sditfajar.sch.id/spmb/status menggunakan nomor pendaftaran dan nomor WhatsApp orang tua yang didaftarkan.",
   },
   // TODO: tambahkan syarat usia masuk kelas 1 dan dokumen yang diperlukan bila sudah ditetapkan sekolah.
 ];

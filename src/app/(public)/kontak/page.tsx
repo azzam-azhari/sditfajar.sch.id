@@ -89,7 +89,7 @@ export default function KontakPage() {
               Membutuhkan informasi cepat mengenai kuota SPMB atau jadwal tes pemetaan murid? Chat langsung dengan panitia.
             </p>
             <a
-              href={whatsappLink("Assalamu'alaikum, saya ingin bertanya informasi PPDB SDIT Fajar")}
+              href={whatsappLink("Assalamu'alaikum, saya ingin bertanya informasi SPMB SDIT Fajar")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 transition-colors"

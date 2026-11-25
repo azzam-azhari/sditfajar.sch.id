@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // Bukti pendaftaran berisi data pribadi calon murid — jangan diindeks.
-      disallow: ["/dashboard/", "/api/", "/login", "/ganti-password", "/pendaftaran/sukses/"],
+      disallow: ["/dashboard/", "/api/", "/login", "/ganti-password", "/spmb/sukses/"],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,

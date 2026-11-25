@@ -22,7 +22,11 @@ interface Settings {
   is_marketplace_enabled: boolean;
   bank_accounts: BankAccount[];
   manual_instructions: string | null;
+  spmb_bank_account: BankAccount | null;
+  spmb_transfer_instructions: string | null;
 }
+
+const EMPTY_BANK: BankAccount = { bank: '', account_number: '', account_name: '' };
 
 const TOGGLES: { key: keyof Settings; label: string; hint: string }[] = [
   { key: 'is_enabled', label: 'Aktifkan pembayaran', hint: 'Saklar utama. Bila mati, wali tidak dapat membayar tagihan apa pun.' },
@@ -37,6 +41,7 @@ export function PaymentSettingsForm({ initial }: { initial: Settings }) {
   const router = useRouter();
   const [isPending, startTransition] = React.useTransition();
   const [form, setForm] = React.useState<Settings>(initial);
+  const [spmbBank, setSpmbBank] = React.useState<BankAccount>(initial.spmb_bank_account ?? EMPTY_BANK);
 
   const setToggle = (key: keyof Settings, value: boolean) => setForm((f) => ({ ...f, [key]: value }));
   const setBank = (index: number, field: keyof BankAccount, value: string) =>
@@ -44,7 +49,8 @@ export function PaymentSettingsForm({ initial }: { initial: Settings }) {
 
   const save = () =>
     startTransition(async () => {
-      const res = await updatePaymentSettingsAction(form);
+      const spmbFilled = Object.values(spmbBank).some((v) => v.trim() !== '');
+      const res = await updatePaymentSettingsAction({ ...form, spmb_bank_account: spmbFilled ? spmbBank : null });
       if (res.success) {
         toast.success(res.message);
         router.refresh();
@@ -122,6 +128,37 @@ export function PaymentSettingsForm({ initial }: { initial: Settings }) {
               onChange={(e) => setForm((f) => ({ ...f, manual_instructions: e.target.value }))}
               maxLength={2000}
             />
+          </SectionCard>
+
+          <SectionCard
+            title="Rekening Biaya Formulir SPMB"
+            description="Ditampilkan di halaman /spmb (Langkah 3). Nominal mengikuti biaya pendaftaran gelombang aktif. Kosongkan semua kolom untuk menyembunyikan."
+          >
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_1.4fr]">
+              <div className="space-y-1">
+                <Label htmlFor="spmb-bank" className="text-[11px]">Bank tujuan</Label>
+                <Input id="spmb-bank" placeholder="Bank Syariah Indonesia (BSI)" value={spmbBank.bank} onChange={(e) => setSpmbBank((b) => ({ ...b, bank: e.target.value }))} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="spmb-account" className="text-[11px]">No. rekening</Label>
+                <Input id="spmb-account" className="font-mono" placeholder="712-300-000" value={spmbBank.account_number} onChange={(e) => setSpmbBank((b) => ({ ...b, account_number: e.target.value }))} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="spmb-name" className="text-[11px]">Atas nama</Label>
+                <Input id="spmb-name" placeholder="SDIT PPDB" value={spmbBank.account_name} onChange={(e) => setSpmbBank((b) => ({ ...b, account_name: e.target.value }))} />
+              </div>
+            </div>
+            <div className="mt-3 space-y-1">
+              <Label htmlFor="spmb-instructions" className="text-[11px]">Instruksi tambahan (opsional)</Label>
+              <Textarea
+                id="spmb-instructions"
+                rows={3}
+                placeholder="Contoh: Cantumkan nama calon siswa di berita transfer."
+                value={form.spmb_transfer_instructions ?? ''}
+                onChange={(e) => setForm((f) => ({ ...f, spmb_transfer_instructions: e.target.value }))}
+                maxLength={2000}
+              />
+            </div>
           </SectionCard>
 
           <SectionCard title="Payment Gateway (Midtrans)" description="Ditunda sesuai keputusan sekolah. Pembayaran otomatis belum aktif.">

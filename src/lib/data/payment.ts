@@ -13,6 +13,9 @@ export interface PaymentSettingsView {
   is_marketplace_enabled: boolean;
   bank_accounts: BankAccount[];
   manual_instructions: string | null;
+  /** Rekening biaya formulir SPMB (halaman /spmb). */
+  spmb_bank_account: BankAccount | null;
+  spmb_transfer_instructions: string | null;
 }
 
 const DEFAULT_SETTINGS: PaymentSettingsView = {
@@ -25,6 +28,8 @@ const DEFAULT_SETTINGS: PaymentSettingsView = {
   is_marketplace_enabled: false,
   bank_accounts: [],
   manual_instructions: null,
+  spmb_bank_account: null,
+  spmb_transfer_instructions: null,
 };
 
 /**
@@ -35,12 +40,17 @@ export async function getPaymentSettings(): Promise<PaymentSettingsView> {
   const admin = createAdminClient();
   const { data } = await admin
     .from('payment_settings')
-    .select('id, is_enabled, manual_transfer_enabled, is_spp_enabled, is_iuran_enabled, is_pendaftaran_semester_enabled, is_marketplace_enabled, bank_accounts, manual_instructions')
+    .select('id, is_enabled, manual_transfer_enabled, is_spp_enabled, is_iuran_enabled, is_pendaftaran_semester_enabled, is_marketplace_enabled, bank_accounts, manual_instructions, spmb_bank_account, spmb_transfer_instructions')
     .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle();
   if (!data) return DEFAULT_SETTINGS;
-  return { ...DEFAULT_SETTINGS, ...data, bank_accounts: (data.bank_accounts ?? []) as BankAccount[] };
+  return {
+    ...DEFAULT_SETTINGS,
+    ...data,
+    bank_accounts: (data.bank_accounts ?? []) as BankAccount[],
+    spmb_bank_account: (data.spmb_bank_account ?? null) as BankAccount | null,
+  };
 }
 
 /** Apakah jenis tagihan ini sedang dibuka untuk dibayar oleh wali. */

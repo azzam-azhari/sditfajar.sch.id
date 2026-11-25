@@ -195,7 +195,7 @@ export default function EkstrakurikulerPage() {
         description="Wadah pengembangan potensi jasmani, kreativitas seni islami, teknologi, dan kepemimpinan murid di luar jam intrakurikuler."
       >
         <Button asChild size="sm" className="text-xs">
-          <Link href="/pendaftaran">Daftar Murid Baru</Link>
+          <Link href="/spmb">Daftar Murid Baru</Link>
         </Button>
       </PageHeader>
 

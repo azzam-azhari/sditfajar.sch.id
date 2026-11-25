@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
+  // URL lama SPMB dipindah ke /spmb; tautan lama & hasil mesin pencari tetap diarahkan.
+  async redirects() {
+    return [
+      { source: "/pendaftaran", destination: "/spmb", permanent: true },
+      { source: "/pendaftaran/:path*", destination: "/spmb/:path*", permanent: true },
+      { source: "/dashboard/admin/pendaftaran", destination: "/dashboard/admin/spmb", permanent: true },
+    ];
+  },
   /* config options here */
   experimental: {
     agentFeedback: true,
@@ -26,7 +34,11 @@ const nextConfig: NextConfig = {
   },
   images: {
     // Foto sementara dari Unsplash (halaman publik). Hanya host ini yang diizinkan.
-    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      // Thumbnail video YouTube untuk YoutubeFacade.
+      { protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" },
+    ],
   },
   cacheComponents: true,
   partialPrefetching: true,

@@ -1,7 +1,7 @@
 import { pageMeta } from "@/lib/seo/site";
 import * as React from "react";
 import Link from "next/link";
-import { Calendar, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, ArrowRight, ChevronLeft, ChevronRight, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/page-header";
 import { StatusBadge } from "@/components/common/status-badge";
@@ -69,15 +69,16 @@ export default async function BeritaPage(props: { searchParams: Promise<{ halama
               </div>
             </div>
 
-            <div className="lg:col-span-4 flex items-center justify-center p-8 rounded-xl border border-border/60 bg-muted/20">
-              <div className="text-center space-y-2">
-                <div className="size-16 mx-auto rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xl font-mono">
-                  SDIT
+            <Link href={`/berita/${featured.slug}`} className="lg:col-span-4 block overflow-hidden rounded-xl border border-border/60 bg-muted/20">
+              {featured.coverUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={featured.coverUrl} alt={featured.title} className="aspect-[4/3] w-full object-cover" />
+              ) : (
+                <div className="flex aspect-[4/3] items-center justify-center text-muted-foreground">
+                  <Newspaper className="h-10 w-10" />
                 </div>
-                <div className="text-xs font-semibold text-foreground">Warta Resmi Sekolah</div>
-                <div className="text-[11px] text-muted-foreground">Kabar terpercaya SDIT Fajar</div>
-              </div>
-            </div>
+              )}
+            </Link>
           </div>
         </section>
       )}
@@ -88,12 +89,29 @@ export default async function BeritaPage(props: { searchParams: Promise<{ halama
           Arsip Berita & Agenda Terkini
         </h3>
 
+        {regular.length === 0 && (
+          <p className="rounded-xl border border-dashed border-border/80 p-8 text-center text-sm text-muted-foreground">
+            Belum ada berita yang dipublikasikan.
+          </p>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {regular.map((article) => (
             <article
               key={article.slug}
-              className="flex flex-col justify-between rounded-xl border border-border/80 bg-card p-5 hover:border-primary/50 transition-colors shadow-xs"
+              className="flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card hover:border-primary/50 transition-colors shadow-xs"
             >
+              <Link href={`/berita/${article.slug}`} className="block bg-muted/20" tabIndex={-1} aria-hidden="true">
+                {article.coverUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={article.coverUrl} alt="" loading="lazy" className="aspect-video w-full object-cover" />
+                ) : (
+                  <div className="flex aspect-video items-center justify-center text-muted-foreground">
+                    <Newspaper className="h-8 w-8" />
+                  </div>
+                )}
+              </Link>
+              <div className="flex flex-1 flex-col justify-between p-5">
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
                   <span>{article.category}</span>
@@ -118,6 +136,7 @@ export default async function BeritaPage(props: { searchParams: Promise<{ halama
                   <span>Baca</span>
                   <ArrowRight className="h-3 w-3" />
                 </Link>
+              </div>
               </div>
             </article>
           ))}

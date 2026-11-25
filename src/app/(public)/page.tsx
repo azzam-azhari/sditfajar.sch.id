@@ -14,10 +14,12 @@ import {
   ChevronRight,
   ShoppingBag,
   Quote,
+  PlayCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/common/stat-card";
 import { StatusBadge } from "@/components/common/status-badge";
+import { YoutubeFacade } from "@/components/common/youtube-facade";
 
 export const metadata = pageMeta({
   title: "SDIT Fajar — SD Islam Terpadu & Sekolah Tahfidz di Tapos, Depok",
@@ -29,7 +31,7 @@ export const metadata = pageMeta({
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col gap-10 sm:gap-16 md:gap-24 pb-16 sm:pb-20">
+    <div className="space-y-10 pb-16 sm:space-y-16 sm:pb-20 md:space-y-24">
 
       {/* 1. HERO SECTION */}
       <section className="relative overflow-hidden pt-8 sm:pt-14 md:pt-20 pb-8 sm:pb-12 md:pb-14 border-b border-border/60 bg-gradient-to-b from-primary/5 via-transparent to-transparent">
@@ -46,7 +48,7 @@ export default function HomePage() {
 
             {/* SPMB Alert Pill */}
             <Link
-              href="/pendaftaran"
+              href="/spmb"
               className="group inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 sm:px-3.5 sm:py-1 text-[11px] sm:text-xs font-semibold text-primary transition-all hover:bg-primary/15 max-w-full"
             >
               <span className="flex h-2 w-2 shrink-0 rounded-full bg-primary animate-pulse" />
@@ -80,7 +82,7 @@ export default function HomePage() {
                 size="lg"
                 className="w-full sm:w-auto h-11 px-6 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm active:scale-[0.99] transition-transform"
               >
-                <Link href="/pendaftaran" className="flex items-center justify-center gap-2">
+                <Link href="/spmb" className="flex items-center justify-center gap-2">
                   <span>Daftar SPMB Online</span>
                   <ArrowRight className="h-4 w-4 shrink-0" />
                 </Link>
@@ -267,7 +269,7 @@ export default function HomePage() {
                 size="lg"
                 className="w-full text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 h-11"
               >
-                <Link href="/pendaftaran" className="flex items-center justify-center gap-2">
+                <Link href="/spmb" className="flex items-center justify-center gap-2">
                   <span>Isi Formulir Pendaftaran</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -278,7 +280,7 @@ export default function HomePage() {
                 size="lg"
                 className="w-full text-xs font-medium h-11"
               >
-                <Link href="/pendaftaran/status">Cek Status Pendaftaran</Link>
+                <Link href="/spmb/status">Cek Status Pendaftaran</Link>
               </Button>
             </div>
 
@@ -385,6 +387,51 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* 5b. INFORMASI TERKINI (VIDEO) */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-labelledby="info-terkini-heading">
+        <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-6 md:p-8 shadow-xs">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10 lg:items-center">
+            <div className="lg:col-span-3 relative aspect-video overflow-hidden rounded-xl border border-border/80 bg-muted">
+              <YoutubeFacade
+                videoId="DZQvwymUcLw"
+                title="THANKS THE MEMORIES || LAST CHAPTER SIXCLASS 2026"
+              />
+            </div>
+
+            <div className="lg:col-span-2 space-y-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+                Informasi Terkini
+              </span>
+              <h2
+                id="info-terkini-heading"
+                className="text-2xl font-bold tracking-tight text-foreground md:text-3xl"
+              >
+                Informasi Terkini SDIT Fajar
+              </h2>
+              <h3 className="text-sm font-semibold text-foreground">
+                THANKS THE MEMORIES || LAST CHAPTER SIXCLASS 2026
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Kenangan perpisahan murid kelas 6 angkatan 2026. Video ini merangkum perjalanan enam tahun mereka di SDIT Fajar — belajar, menghafal Al-Qur&apos;an, dan tumbuh bersama para guru — sebelum melangkah ke jenjang berikutnya.
+              </p>
+              <div className="pt-1">
+                <Button asChild variant="outline" size="sm" className="text-xs font-semibold">
+                  <a
+                    href="https://www.youtube.com/watch?v=DZQvwymUcLw"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5"
+                  >
+                    <PlayCircle className="h-3.5 w-3.5" />
+                    <span>Tonton di YouTube</span>
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 6. TESTIMONI WALI MURID */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10">
@@ -463,7 +510,9 @@ export default function HomePage() {
       </section>
 
       {/* 8. FAQ SECTION (sekaligus schema FAQPage) */}
-      <FaqSection items={FAQ_UMUM} />
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <FaqSection items={FAQ_UMUM} />
+      </div>
 
       {/* 9. FINAL CTA */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -476,7 +525,7 @@ export default function HomePage() {
           </p>
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button asChild size="lg" className="w-full sm:w-auto text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6">
-              <Link href="/pendaftaran">Daftar Sekarang (SPMB 2026/2027)</Link>
+              <Link href="/spmb">Daftar Sekarang (SPMB 2026/2027)</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="w-full sm:w-auto text-xs font-medium h-11 px-6">
               <Link href="/kontak">Hubungi Kami & Kunjungan Sekolah</Link>

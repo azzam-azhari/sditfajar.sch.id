@@ -5,6 +5,8 @@ import { teacherCsvRowSchema } from './import.schema';
 import { createStaffUserSchema } from './super-admin.schema';
 import { checkoutSchema, tahfidzRecordSchema } from './fase6.schema';
 import { assignmentSchema } from './lms.schema';
+import { ageInYears, publicRegistrationSchema } from './spmb.schema';
+import { linkParentStudentSchema } from './parent.schema';
 
 const ID = '3f2b8c1e-5d4a-4c3b-9a2e-1f0d7c6b5a49';
 const SEED_ID = '00000000-0000-0000-0000-000000000004'; // ID seed berpola tetap harus tetap diterima
@@ -112,5 +114,74 @@ describe('LMS', () => {
   it('menolak toleransi terlambat negatif dan due_at tanpa zona waktu', () => {
     expect(assignmentSchema.safeParse({ ...asg, late_tolerance_minutes: -5 }).success).toBe(false);
     expect(assignmentSchema.safeParse({ ...asg, due_at: '2026-11-30 23:59' }).success).toBe(false);
+  });
+});
+
+describe('SPMB formulir pendaftaran', () => {
+  const birthDateForAge = (age: number) => {
+    const d = new Date();
+    return `${d.getFullYear() - age}-01-01`;
+  };
+  const valid = {
+    admission_wave_id: ID,
+    student_name: 'Muhammad Azzam',
+    nickname: 'Azzam',
+    birth_place: 'Depok',
+    birth_date: birthDateForAge(7),
+    gender: 'L',
+    total_siblings: 2,
+    child_number: 1,
+    phone: '0812 3456 7890',
+    address: 'Jl. Raya Bogor RT 01/02, Jatijajar, Tapos',
+    hobby: 'Membaca',
+    achievements: '-',
+    medical_history: '-',
+    father_name: 'Ahmad Fauzi',
+    father_education: 'S1/S2/S3',
+    father_occupation: 'Wiraswasta',
+    mother_name: 'Siti Rahmah',
+    mother_education: 'SMA/SMK/MA',
+    mother_occupation: 'Ibu Rumah Tangga',
+    parent_address: 'Jl. Raya Bogor RT 01/02, Jatijajar, Tapos',
+  };
+
+  it('menerima data lengkap', () => {
+    expect(publicRegistrationSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it.each([3, 13])('menolak usia %i tahun (di luar 4–12)', (age) => {
+    expect(publicRegistrationSchema.safeParse({ ...valid, birth_date: birthDateForAge(age) }).success).toBe(false);
+  });
+
+  it.each(['nickname', 'hobby', 'achievements', 'medical_history', 'parent_address', 'mother_occupation'])(
+    'mewajibkan %s',
+    (field) => {
+      expect(publicRegistrationSchema.safeParse({ ...valid, [field]: '' }).success).toBe(false);
+    }
+  );
+
+  it('menolak pendidikan di luar pilihan', () => {
+    expect(publicRegistrationSchema.safeParse({ ...valid, father_education: 'SMA' }).success).toBe(false);
+  });
+
+  it('menghitung usia penuh dengan memperhatikan tanggal ulang tahun', () => {
+    expect(ageInYears('2019-11-26', new Date(2026, 10, 25))).toBe(6);
+    expect(ageInYears('2019-11-25', new Date(2026, 10, 25))).toBe(7);
+  });
+});
+
+describe('tautan wali murid ke anak', () => {
+  const valid = { parent_id: ID, student_id: SEED_ID, relationship: 'Ayah' };
+
+  it('menerima tautan valid', () => {
+    expect(linkParentStudentSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it('menolak hubungan di luar pilihan', () => {
+    expect(linkParentStudentSchema.safeParse({ ...valid, relationship: 'Paman' }).success).toBe(false);
+  });
+
+  it.each(['parent_id', 'student_id'])('menolak %s yang bukan UUID', (field) => {
+    expect(linkParentStudentSchema.safeParse({ ...valid, [field]: '1; drop table' }).success).toBe(false);
   });
 });

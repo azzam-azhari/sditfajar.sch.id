@@ -1,6 +1,12 @@
 import { HelpCircle } from "lucide-react";
 import type { FaqItem } from "@/lib/seo/faq";
 import { JsonLd, faqSchema } from "@/components/seo/json-ld";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 /** Daftar tanya-jawab yang sekaligus mengirim schema FAQPage ke Google. */
 export function FaqSection({
@@ -13,7 +19,7 @@ export function FaqSection({
   eyebrow?: string;
 }) {
   return (
-    <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8" aria-labelledby="faq-heading">
+    <section className="w-full" aria-labelledby="faq-heading">
       <JsonLd data={faqSchema(items)} />
       <div className="text-center mb-8">
         <span className="text-xs font-semibold uppercase tracking-wider text-primary">{eyebrow}</span>
@@ -22,23 +28,25 @@ export function FaqSection({
         </h2>
       </div>
 
-      <div className="space-y-3">
-        {items.map((f) => (
-          <details
+      <Accordion type="single" collapsible defaultValue="faq-0" className="gap-3">
+        {items.map((f, i) => (
+          <AccordionItem
             key={f.q}
-            className="group rounded-xl border border-border/80 bg-card p-5 open:shadow-xs"
+            value={`faq-${i}`}
+            className="rounded-xl border border-border/80 bg-card px-5 transition-shadow data-[state=open]:shadow-xs"
           >
-            <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
-              <HelpCircle className="h-4 w-4 text-primary shrink-0" />
-              <h3 className="flex-1">{f.q}</h3>
-              <span className="text-muted-foreground transition-transform group-open:rotate-45" aria-hidden>
-                +
+            <AccordionTrigger className="items-center gap-3 py-4 text-sm font-semibold text-foreground hover:no-underline">
+              <span className="flex flex-1 items-start gap-2">
+                <HelpCircle className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                {f.q}
               </span>
-            </summary>
-            <p className="mt-2 text-xs text-muted-foreground leading-relaxed pl-6">{f.a}</p>
-          </details>
+            </AccordionTrigger>
+            <AccordionContent className="pb-4 pl-6 text-sm leading-relaxed text-muted-foreground">
+              {f.a}
+            </AccordionContent>
+          </AccordionItem>
         ))}
-      </div>
+      </Accordion>
     </section>
   );
 }

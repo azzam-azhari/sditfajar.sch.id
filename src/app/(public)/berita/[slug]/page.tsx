@@ -1,5 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Calendar, Clock, ArrowLeft, ArrowRight, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +27,7 @@ interface DetailBeritaPageProps {
 export async function generateMetadata({ params }: DetailBeritaPageProps) {
   const { slug } = await params;
   const article = await getPublicNewsBySlug(slug);
+  if (!article) notFound();
   return pageMeta({
     title: article.title,
     description: summarize(article.content[0] || "Warta resmi kegiatan dan prestasi SDIT Fajar Depok."),
@@ -53,6 +55,7 @@ function initials(name: string): string {
 export default async function DetailBeritaPage({ params }: DetailBeritaPageProps) {
   const { slug } = await params;
   const [article, allNews] = await Promise.all([getPublicNewsBySlug(slug), getPublicNewsList()]);
+  if (!article) notFound();
   const otherNews = allNews.filter((n) => n.slug !== slug).slice(0, 5);
   const wordCount = article.content.join(" ").split(/\s+/).length;
   const readMinutes = Math.max(1, Math.round(wordCount / 200));

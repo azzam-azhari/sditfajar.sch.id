@@ -98,6 +98,9 @@ export const paymentSettingsSchema = z.object({
   is_marketplace_enabled: z.boolean(),
   bank_accounts: z.array(bankAccountSchema).max(5, 'Maksimal 5 rekening.'),
   manual_instructions: optionalText(2000),
+  /** Rekening biaya formulir SPMB (ditampilkan di /spmb). Nominal mengikuti gelombang aktif. */
+  spmb_bank_account: bankAccountSchema.nullable(),
+  spmb_transfer_instructions: optionalText(2000),
 });
 
 export type InvoiceCreateInput = z.input<typeof invoiceCreateSchema>;

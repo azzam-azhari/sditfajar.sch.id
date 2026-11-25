@@ -2,6 +2,7 @@
 
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { revalidatePath } from 'next/cache';
 import { requireRole, requireUser } from '@/lib/supabase/auth-helpers';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminSignedUrl, deleteStorageFile, uploadStorageFile } from '@/lib/supabase/storage';
@@ -252,7 +253,9 @@ export async function updatePaymentSettingsAction(input: PaymentSettingsInput): 
     is_enabled: parsed.data.is_enabled,
     manual_transfer_enabled: parsed.data.manual_transfer_enabled,
     bank_accounts: parsed.data.bank_accounts.length,
+    spmb_bank_account: parsed.data.spmb_bank_account !== null,
   });
   revalidateDashboards();
+  revalidatePath('/spmb');
   return { success: true, data: undefined, message: 'Pengaturan pembayaran disimpan.' };
 }

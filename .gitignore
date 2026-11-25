@@ -54,4 +54,5 @@ graphify-out/
 
 # Supabase migration seed data (kredensial & data uji lokal)
 /supabase/migration-final/seed/
+/supabase/migration/seed/
 

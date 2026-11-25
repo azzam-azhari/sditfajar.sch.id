@@ -24,7 +24,7 @@ export default async function AdminDashboardPage() {
     { count: totalStudents },
     { count: totalTeachers },
     { count: totalClassrooms },
-    { count: pendingPpdb },
+    { count: pendingSpmb },
     { data: activePeriod },
   ] = await Promise.all([
     supabase.from('students').select('*', { count: 'exact', head: true }).eq('is_active', true),
@@ -87,7 +87,7 @@ export default async function AdminDashboardPage() {
     },
     {
       description: 'Verifikasi SPMB Baru',
-      title: `${pendingPpdb || 0} Calon`,
+      title: `${pendingSpmb || 0} Calon`,
       badgeText: 'Perlu Tinjauan',
       footerTitle: 'Pendaftaran daring calon murid',
       footerSubtitle: 'Pemeriksaan berkas & promosi',
@@ -109,7 +109,7 @@ export default async function AdminDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button asChild size="sm" variant="default" className="text-xs">
-            <Link href="/dashboard/admin/pendaftaran" className="flex items-center gap-1.5">
+            <Link href="/dashboard/admin/spmb" className="flex items-center gap-1.5">
               <UserCheck className="size-3.5" />
               <span>Verifikasi SPMB</span>
             </Link>

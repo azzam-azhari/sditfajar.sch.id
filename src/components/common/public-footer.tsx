@@ -106,7 +106,7 @@ export function PublicFooter() {
             <ul className="space-y-2 text-xs text-muted-foreground">
               <li>
                 <Link
-                  href="/pendaftaran"
+                  href="/spmb"
                   className="hover:text-primary transition-colors flex items-center gap-1 font-medium text-primary"
                 >
                   <span>Pendaftaran Murid Baru (SPMB)</span>
@@ -115,7 +115,7 @@ export function PublicFooter() {
               </li>
               <li>
                 <Link
-                  href="/pendaftaran/status"
+                  href="/spmb/status"
                   className="hover:text-primary transition-colors flex items-center gap-1"
                 >
                   <span>Cek Status Pendaftaran</span>
@@ -184,7 +184,7 @@ export function PublicFooter() {
             <Link href="/profil" className="hover:text-foreground transition-colors">
               Tentang Kami
             </Link>
-            <Link href="/pendaftaran" className="hover:text-foreground transition-colors">
+            <Link href="/spmb" className="hover:text-foreground transition-colors">
               Informasi SPMB
             </Link>
             <Link href="/kontak" className="hover:text-foreground transition-colors">

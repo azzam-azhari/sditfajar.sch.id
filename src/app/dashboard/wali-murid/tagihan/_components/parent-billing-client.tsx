@@ -91,6 +91,7 @@ export function ParentBillingClient({
   const baseColumns = [
     {
       header: 'Tagihan',
+      cardSlot: 'title' as const,
       cell: (i: ParentInvoice) => (
         <div className="space-y-0.5">
           <div className="font-medium text-foreground">{i.title}</div>
@@ -121,11 +122,13 @@ export function ParentBillingClient({
             data={active}
             keyExtractor={(i) => i.id}
             emptyText="Tidak ada tagihan aktif. Terima kasih!"
+            mobileCards
             columns={[
               ...baseColumns,
               {
                 header: 'Aksi',
                 align: 'right',
+                cardSlot: 'footer',
                 cell: (i) =>
                   i.status === 'unpaid' && i.payable ? (
                     <Button size="sm" className="h-7 text-xs" onClick={() => openPay(i)}>
@@ -145,11 +148,13 @@ export function ParentBillingClient({
             data={history}
             keyExtractor={(i) => i.id}
             emptyText="Belum ada riwayat pembayaran."
+            mobileCards
             columns={[
               ...baseColumns,
               {
                 header: 'Kuitansi',
                 align: 'right',
+                cardSlot: 'footer',
                 cell: (i) =>
                   i.status === 'paid' ? (
                     <Button asChild size="sm" variant="outline" className="h-7 text-xs">

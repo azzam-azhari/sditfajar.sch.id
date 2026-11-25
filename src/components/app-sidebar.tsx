@@ -132,18 +132,18 @@ export function AppSidebar({ user, positions = [], ...props }: AppSidebarProps) 
   const superAdminNavDocs = [
     {
       name: "Verifikasi SPMB",
-      url: "/dashboard/admin/pendaftaran",
+      url: "/dashboard/admin/spmb",
       icon: <UserCheck className="size-4" />,
-    },
-    {
-      name: "Rombel & Kelas",
-      url: "/dashboard/admin/rombel",
-      icon: <School className="size-4" />,
     },
     {
       name: "Data Murid",
       url: "/dashboard/admin/siswa",
       icon: <GraduationCap className="size-4" />,
+    },
+    {
+      name: "Rombel & Kelas",
+      url: "/dashboard/admin/rombel",
+      icon: <School className="size-4" />,
     },
     {
       name: "Berita Sekolah",
@@ -161,7 +161,7 @@ export function AppSidebar({ user, positions = [], ...props }: AppSidebarProps) 
     },
     {
       title: "Verifikasi SPMB",
-      url: "/dashboard/admin/pendaftaran",
+      url: "/dashboard/admin/spmb",
       icon: <UserCheck className="size-4" />,
     },
     {
